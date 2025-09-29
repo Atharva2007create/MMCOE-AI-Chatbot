@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMCOE Vector Chatbot v7 (Core QnA Only)</title>
+    <!-- Load Tailwind CSS for modern aesthetics, curves, and responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles and transitions for a smooth dark mode experience */
+        body {
+            transition: background-color 0.4s ease;
+            font-family: 'Inter', sans-serif;
+            /* Ensure body covers the full viewport height */
+            height: 100vh; 
+            margin: 0;
+            padding: 0;
+        }
+        /* Apply smooth transition to all structural elements */
+        #main-content, header, footer, #user-input, #welcome-panel, .message-bubble-wrapper {
+            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Custom scrollbar for aesthetics */
+        #chat-window::-webkit-scrollbar { width: 8px; background-color: #f0f8ff; }
+        #chat-window::-webkit-scrollbar-thumb { background-color: #3b82f6; border-radius: 10px; }
+        .dark #chat-window::-webkit-scrollbar { background-color: #1f2937; }
+        .dark #chat-window::-webkit-scrollbar-thumb { background-color: #60a5fa; }
+
+        /* Animation for new chat messages */
+        .chat-message.new {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInSlideUpMessage 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInSlideUpMessage {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Neumorphism/Polished Card Shadow */
+        .polished-card-shadow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+        }
+        .dark .polished-card-shadow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(31, 41, 55, 0.7) inset;
+        }
+
+        /* Loading animation for the LLM call */
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 20px;
+        }
+        .loading-dots div {
+            width: 8px;
+            height: 8px;
+            margin: 0 3px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dark .loading-dots div { background-color: #60a5fa; }
+        .loading-dots div:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots div:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        
+        /* TTS Loading Spinner */
+        .tts-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- SPLASH/TRANSITION CSS --- */
+        @keyframes splashOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
+        .splash-fade-out { animation: splashOut 1.5s ease-in-out 4.5s forwards; }
+        .main-content-slide-in { animation: slideInUp 1.5s cubic-bezier(0.4, 0, 0.2, 1) 4.5s forwards; }
+        .cube-wrapper { width: 160px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-style: preserve-3d; animation: sheetFall 4.5s cubic-bezier(.17,.67,.57,1.48) forwards; }
+        @keyframes sheetFall { 0% { transform: translate(-50%, -50%) translateY(-1500px) rotateX(20deg); opacity: 0; filter: blur(15px); } 1% { opacity: 1; filter: blur(0px); } 95% { transform: translate(-50%, -50%) translateY(-10px) rotateX(0deg); } 100% { transform: translate(-50%, -50%) translateY(0px) rotateX(0deg); } }
+        .cube-face { position: absolute; width: 160px; height: 120px; background: linear-gradient(135deg, #fff, #f0f4f9); border: 1px solid #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #1e3a8a; text-align: center; border-radius: 44px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); user-select: none; transform: translateZ(2px); background: linear-gradient(135deg, #e0e7ff, #fff); border-bottom: 2px solid #1e3a8a; }
+        /* Voice Recording Status UI */
+        .recording-pulse { animation: recordingPulse 1s infinite alternate; }
+        @keyframes recordingPulse { from { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } to { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } }
+    </style>
+    <script>
+        // --- GEMINI API CONFIGURATION ---
+        const apiKey = ""; // Canvas will provide this automatically.
+        const LLM_MODEL = 'gemini-2.5-flash-preview-05-20';
+        const LLM_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${LLM_MODEL}:generateContent?key=${apiKey}`;
+        const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
+        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
+
+
+        // --- 1. KNOWLEDGE BASE SETUP ---
+        const KNOWLEDGE_BASE = new Map();
+        const MARATHI_KNOWLEDGE_BASE = new Map();
+        
+        // Removed gendered words and replaced with "BLEEP" in derogatory list
+        const DEROGATORY_KEYWORDS = new Set([
+            "fuck", "fucking", "fck", "shit", "bitch", "asshole", "motherfucker", "cunt", "piss", "bastard", "prick", "queer", "wanker", "twat", "idiot", 
+            "stupid", "dumb", "fool", "moron", "loser", "jerk", "useless", "worst", "damn", "hell", "suck", "abuse", 
+            "slur", "hate", "retard", "spaz", "co*k", "d*ck", "p*rn", "s*x", "whore", "slut", "goddamn", 
+            "nigga", "nigger", "kike", "chink", "gook", "tranny", "faggot", "s*xual", "rapist", "pedophile", "incest", 
+            "molester", "suicide", "k*ll", "die", "dead", "g*ay", "l*bian", "tr*p", "gtfo", "lmao", "rofl", "ass",
+            // Marathi/Hindi Transliterations & Common Slang
+            "chutiya", "bhikari", "murkh", "veda", "gadhv", "rand", "lavda", "jhaat", "zopad", "m*darchod",
+            "ch*d", "bhadwa", "lund", "suar", "bakchod", "bhadve", "sale", "kutra", "h*aramzada", "k*amchor",
+            "g**nd", "bhosdi", "chappri", "d*ala", "g*ndo", "chokna", "chakka", "maza", "dh*ndha", "ghanta"
+        ]);
+        
+        const PRIORITY_KEYWORDS = {
+            BUS: ["bus", "transport", "shuttle", "commute", "travel", "pick up", "drop off"],
+            HOSTEL: ["hostel", "lodging", "stay", "residence", "dorm", "accommodation", "mess", "canteen"],
+            COURSES: ["courses", "curriculum", "syllabus", "major", "field", "btech", "bachelors", "be", "engineering", "programs", "departments", "branch", "subjects"],
+            PLACEMENTS: ["placements", "salary", "package", "recruiter", "recruitment", "t&p", "tp cell", "tpo", "companies", "job", "jobs", "highest package", "average package"]
+        };
+
+
+        function initializeKnowledgeBase() {
+            const docs = [
+                { id: "D001_COURSES", 
+                    en: "**MMCOE offers a robust suite of both Undergraduate (B.E.) and Postgraduate (P.G.) programs designed to meet current industry demands.** The B.E. programs include: **Computer Engineering**, **Information Technology**, **Electronics and Telecommunication Engineering (E&TC)**, **Electrical Engineering**, **Artificial Intelligence and Data Science (AI & DS)**, and **Mechanical Engineering**. For P.G. studies, the college offers the **Master of Business Administration (MBA)** and M.E. in Computer Engineering. The curriculum across all fields is rigorously aligned with Savitribai Phule Pune University (SPPU) standards and is regularly updated for industry relevance.", 
+                    mr: "**MMCOE सध्याच्या उद्योग मागण्या पूर्ण करण्यासाठी डिझाइन केलेले पदवीपूर्व (B.E.) आणि पदव्युत्तर (P.G.) कार्यक्रमांचा एक मजबूत संच ऑफर करते.** B.E. कार्यक्रमांमध्ये हे समाविष्ट आहे: **कॉम्प्युटर इंजिनिअरिंग**, **इन्फॉर्मेशन टेक्नॉलॉजी**, **इलेक्ट्रॉनिक्स आणि टेलिकम्युनिकेशन इंजिनिअरिंग (E&TC)**, **इलेक्ट्रिकल इंजिनिअरिंग**, **आर्टिफिशियल इंटेलिजन्स आणि डेटा सायन्स (AI & DS)**, आणि **मेकॅनिकल इंजिनिअरिंग**. P.G. अभ्यासांसाठी, कॉलेज **मास्टर ऑफ बिझनेस ॲडमिनिस्ट्रेशन (MBA)** आणि कॉम्प्युटर इंजिनिअरिंगमध्ये M.E. ऑफर करते. सर्व शाखांमधील अभ्यासक्रम सावित्रीबाई फुले पुणे विद्यापीठाच्या (SPPU) मानकांशी कठोरपणे संरेखित आहेत आणि उद्योग-सुसंगततेसाठी नियमितपणे अद्यतनित केले जातात." 
+                },
+                { id: "D004_PLACEMENTS", 
+                    en: "**The Training and Placement (T&P) Cell at MMCOE is highly proactive, demonstrating strong outcomes year after year.** While placement figures are subject to market conditions, the data reflects consistent performance. The **average package generally ranges around INR 5.5 LPA**, and the **highest package reported has been around INR 19 LPA**. Top recruiting domains include major IT, Core Engineering sectors, and Management Consulting firms. The T&P cell also focuses on extensive student training in soft skills and technical readiness to maximize career opportunities.", 
+                    mr: "**MMCOE मधील प्रशिक्षण आणि प्लेसमेंट (T&P) सेल अत्यंत सक्रिय आहे, दरवर्षी मजबूत परिणाम दर्शवितो.** प्लेसमेंटची आकडेवारी बाजारातील परिस्थितीवर अवलंबून असली तरी, डेटा सातत्यपूर्ण कामगिरी दर्शवतो. **सरासरी पॅकेज सामान्यतः INR 5.5 LPA च्या आसपास असते**, आणि **सर्वात जास्त पॅकेज INR 19 LPA च्या आसपास नोंदवले गेले आहे**. शीर्ष भरती डोमेन्समध्ये प्रमुख आयटी, कोअर इंजिनिअरिंग क्षेत्रे आणि व्यवस्थापन सल्लागार कंपन्यांचा समावेश आहे. T&P सेल करिअरच्या संधी वाढवण्यासाठी विद्यार्थ्यांच्या सॉफ्ट स्किल्स आणि तांत्रिक तयारीवर देखील लक्ष केंद्रित करतो." 
+                },
+                { id: "D006_HOSTEL", 
+                    en: "**MMCOE offers comprehensive, separate residential facilities (hostels) for students** conveniently located in the vicinity of the main campus. These facilities are designed to provide a conducive environment for academic and personal growth. Key amenities provided include structured mess services offering hygienic meals, reliable Wi-Fi connectivity for academic purposes, and dedicated recreational areas. **Admission to the hostel is merit-based and separate from the academic enrollment process.**", 
+                    mr: "**MMCOE विद्यार्थ्यांना मुख्य कॅम्पसच्या जवळ असलेल्या ठिकाणी सोयीस्करपणे, स्वतंत्र निवासी सुविधा (वसतिगृह) प्रदान करते.** या सुविधा शैक्षणिक आणि वैयक्तिक वाढीसाठी अनुकूल वातावरण देण्यासाठी डिझाइन केलेल्या आहेत. पुरवलेल्या मुख्य सुविधांमध्ये आरोग्यदायी जेवण देणारी सुव्यवस्थित मेस सेवा, शैक्षणिक हेतूंसाठी विश्वसनीय वाय-फाय कनेक्टिव्हिटी आणि समर्पित मनोरंजक क्षेत्रे समाविष्ट आहेत. **वसतिगृहात प्रवेश शैक्षणिक प्रवेश प्रक्रियेपासून वेगळा आणि गुणवत्ता-आधारित असतो.**" 
+                },
+                { id: "D007_BUS", 
+                    en: "**MMCOE does not currently operate a dedicated transportation or bus service for its students.** It is located in the prominent Kothrud area of Pune, which is exceptionally well-connected by the Pune Mahanagar Parivahan Mahamandal Limited (PMPML) city bus network and various other public transport options. Students are expected to utilize the robust local public and private transport facilities for daily commuting.", 
+                    mr: "**MMCOE सध्या आपल्या विद्यार्थ्यांसाठी समर्पित वाहतूक किंवा बस सेवा चालवत नाही.** ते पुण्यातील प्रमुख कोथरूड परिसरात स्थित आहे, जो पुणे महानगर परिवहन महामंडळ लिमिटेड (PMPML) शहर बस नेटवर्क आणि इतर विविध सार्वजनिक वाहतूक पर्यायांनी उत्कृष्टपणे जोडलेला आहे. विद्यार्थ्यांनी दररोजच्या प्रवासासाठी मजबूत स्थानिक सार्वजनिक आणि खाजगी वाहतूक सुविधांचा उपयोग करणे अपेक्षित आहे." 
+                },
+                { id: "D008_GENERIC_ERROR",
+                    en: "I am having trouble understanding the context of your question. I can provide detailed information about MMCOE programs, admissions, and facilities. Please try using clearer language or specific keywords.",
+                    mr: "तुमच्या प्रश्नाचा संदर्भ समजून घेण्यात मला अडचण येत आहे. मी MMCOE चे कार्यक्रम, प्रवेश आणि सुविधांबद्दल तपशीलवार माहिती देऊ शकतो. कृपया अधिक स्पष्ट भाषा किंवा विशिष्ट कीवर्ड वापरून पहा."
+                }
+            ];
+
+            docs.forEach(doc => {
+                KNOWLEDGE_BASE.set(doc.id, doc.en);
+                MARATHI_KNOWLEDGE_BASE.set(doc.id, doc.mr);
+            });
+        }
+
+        // --- 2. LANGUAGE AND STATIC TEXT MANAGEMENT ---
+        
+        const WELCOME_PANEL_TEXT = "🤖 **Your Dedicated AI Friend:** I'm here to provide comprehensive and instant information about Marathwada Mitramandal College of Engineering (MMCOE). Ask me anything about programs, admissions, or campus facilities! I can also **listen to my answers** for easier comprehension.";
+        const MARATHI_WELCOME_PANEL_TEXT = "🤖 **तुमचा समर्पित AI मित्र:** मी मराठवाडा मित्रमंडळ कॉलेज ऑफ इंजिनिअरिंग (MMCOE) बद्दल सर्वसमावेशक आणि त्वरित माहिती देण्यासाठी येथे आहे. कार्यक्रम, प्रवेश किंवा कॅम्पस सुविधांबद्दल मला काहीही विचारा! मी तुम्हाला **माझी उत्तरे ऐकायला** मदत करू शकेन.";
+
+
+        const STATIC_TEXT = {
+            'en': {
+                welcome: "Hello! I am **MMCOE Vector**, a specialized Q&A system for MMCOE, Pune. I now use an **Advanced AI Intent Detector** for all misspelled or complex questions and can **read out my answers**! Try asking 'wadr is bas service' or 'tell me about the BE courses.' 👍",
+                typing: "Advanced AI is assessing intent and formulating a polished response... 🧠",
+                placeholder: "Ask a question about MMCOE...",
+                user: "You",
+                bot: "MMCOE Vector",
+                confidence: "Confidence (Assessment Score)",
+                genericError: "An issue occurred while processing your request through the Advanced AI system. Please try again with a specific question. 🔑",
+                thresholdMiss: "Based on my internal assessment, your question seems outside my current knowledge domain, which is strictly about the college's programs, admissions, and facilities. Please rephrase your question with more relevant keywords for a better match! 🧐",
+                emptyQuery: "Please enter a valid question about MMCOE. 🤨",
+                derogatoryResponse: "I am here to have a respectful conversation and am programmed to strictly adhere to formal communication standards. I cannot process messages containing derogatory or offensive language. Please ensure your query is rephrased appropriately to continue. Thank you for your understanding. 🤝",
+                langSwitch: "मराठी", 
+                langSwitchTitle: "मराठी भाषेत बदला",
+                themeToggleTitle: "Toggle Dark/Light Mode",
+                audioFailure: "Microphone access denied or recording failed. Please ensure your microphone is connected and access is granted. 🎙️",
+                audioTranscribing: "Transcribing audio... (This is a simulation, actual ASR is unavailable) ⏳",
+                audioSubmitted: "Audio transcribed: ",
+                ttsListen: "Listen to Response",
+                ttsLoading: "Loading Audio...",
+                ttsError: "TTS failed. Try again.",
+            },
+            'mr': {
+                welcome: "नमस्कार! मी **MMCOE वेक्टर** आहे, MMCOE, पुणे साठी एक विशेष प्रश्नोत्तर प्रणाली. मी आता सर्व चुकीच्या स्पेलिंग किंवा जटिल प्रश्नांसाठी **प्रगत AI हेतू डिटेक्टर** वापरतो आणि **माझी उत्तरे वाचून दाखवू शकतो**! 'wadr is bas service' किंवा 'BE अभ्यासक्रमांबद्दल सांगा.' असा प्रश्न विचारून पहा. 👍",
+                typing: "प्रगत AI हेतूचे मूल्यांकन करत आहे आणि एक सुधारित प्रतिसाद तयार करत आहे... 🧠",
+                placeholder: "MMCOE बद्दल तुमचा प्रश्न विचारा...",
+                user: "तुम्ही",
+                bot: "MMCOE वेक्टर",
+                confidence: "आत्मविश्वास (मूल्यांकन स्कोर)",
+                genericError: "प्रगत AI प्रणालीद्वारे तुमच्या विनंतीवर प्रक्रिया करताना एक समस्या आली. कृपया विशिष्ट प्रश्न विचारून पुन्हा प्रयत्न करा. 🔑",
+                thresholdMiss: "माझ्या अंतर्गत मूल्यांकनानुसार, तुमचा प्रश्न माझ्या सध्याच्या ज्ञान क्षेत्राच्या बाहेरचा आहे, जो कठोरपणे कॉलेजचे कार्यक्रम, प्रवेश आणि सुविधांशी संबंधित आहे. कृपया चांगल्या मॅचसाठी तुमचा प्रश्न अधिक संबंधित कीवर्डसह पुन्हा मांडा! 🧐",
+                emptyQuery: "कृपया MMCOE बद्दल एक वैध प्रश्न प्रविष्ट करा. 🤨",
+                derogatoryResponse: "मी येथे आदरणीय संभाषण करण्यासाठी आहे आणि मी औपचारिक संवाद मानकांचे काटेकोरपणे पालन करण्यासाठी प्रोग्राम केलेले आहे. मी अपमानकारक किंवा आक्षेपार्भ भाषा असलेले संदेश प्रक्रियेसाठी घेऊ शकत नाही. कृपया संवाद सुरू ठेवण्यासाठी तुमचा प्रश्न योग्यरित्या पुन्हा मांडा. तुमच्या सहकार्याबद्दल धन्यवाद. 🤝",
+                langSwitch: "English", 
+                langSwitchTitle: "Switch to English Language",
+                themeToggleTitle: "गडद/हलका मोड टॉगल करा",
+                audioFailure: "Microphone access denied or recording failed. Please ensure your microphone is connected and access is granted. 🎙️",
+                audioTranscribing: "ऑडिओचे लिप्यंतरण (Transcribing) करत आहे... (हे एक अनुकरण (simulation) आहे, वास्तविक ASR अनुपलब्ध आहे) ⏳",
+                audioSubmitted: "ऑडिओ लिप्यंतरित: ",
+                ttsListen: "उत्तर ऐका",
+                ttsLoading: "ऑडिओ लोड होत आहे...",
+                ttsError: "TTS अयशस्वी झाले. पुन्हा प्रयत्न करा.",
+            }
+        };
+
+        let currentLanguage = 'en'; 
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let isAudioPlaying = false;
+        let audioPlayer = null;
+
+        function getStaticText(key) { return STATIC_TEXT[currentLanguage][key]; }
+
+        // --- 3. UTILITY FUNCTIONS ---
+        
+        function tokenize(text) {
+            const tokens = [];
+            const cleanedText = text.toLowerCase().replace(/[^a-z0-9\s\u0900-\u097f]/g, ' '); 
+            const words = cleanedText.split(/\s+/);
+            
+            for (const word of words) {
+                if (word.length > 0) {
+                    tokens.push(word);
+                }
+            }
+            return tokens;
+        }
+
+        // Helper for Exponential backoff delay calculation.
+        function getDelay(attempt) {
+            return Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 500);
+        }
+        
+        // --- 4. TTS UTILITY FUNCTIONS (PCM to WAV conversion) ---
+
+        /** Converts a Base64 string to an ArrayBuffer. */
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /** Converts 16-bit PCM audio data to a WAV Blob. */
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcm16.length * 2; // 2 bytes per 16-bit sample
+
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            let offset = 0;
+
+            // RIFF chunk
+            view.setUint32(offset, 0x52494646, false); offset += 4; // 'RIFF'
+            view.setUint32(offset, 36 + dataSize, true); offset += 4; // file size
+            view.setUint32(offset, 0x57415645, false); offset += 4; // 'WAVE'
+
+            // FMT chunk
+            view.setUint32(offset, 0x666d7420, false); offset += 4; // 'fmt '
+            view.setUint32(offset, 16, true); offset += 4; // chunk size
+            view.setUint16(offset, 1, true); offset += 2; // compression code (1 = PCM)
+            view.setUint16(offset, numChannels, true); offset += 2; // channel count
+            view.setUint32(offset, sampleRate, true); offset += 4; // sample rate
+            view.setUint32(offset, byteRate, true); offset += 4; // byte rate
+            view.setUint16(offset, blockAlign, true); offset += 2; // block align
+            view.setUint16(offset, bitsPerSample, true); offset += 2; // bits per sample
+
+            // DATA chunk
+            view.setUint32(offset, 0x64617461, false); offset += 4; // 'data'
+            view.setUint32(offset, dataSize, true); offset += 4; // data size
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+
+        // --- 5. CORE LLM API CALLS ---
+        
+        // ** Feature 1: TTS Playback LLM Call **
+        async function callGeminiTtsApi(text, buttonElement) {
+            if (isAudioPlaying) {
+                if (audioPlayer) audioPlayer.pause();
+                isAudioPlaying = false;
+                buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a2 2 0 01-2-2V9a2 2 0 012-2h1.586l4.293-4.293A1 1 0 0112 3v18a1 1 0 01-1.121.951L5.586 15z"></path></svg> ${getStaticText('ttsListen')}`;
+                return;
+            }
+
+            buttonElement.disabled = true;
+            const originalButtonContent = buttonElement.innerHTML;
+            buttonElement.innerHTML = `<span class="tts-spinner"></span> <span class="ml-2">${getStaticText('ttsLoading')}</span>`;
+
+            // Use the "Kore" voice for a firm, official tone appropriate for a college
+            const ttsPrompt = `Say: ${text}`;
+            const payload = {
+                contents: [{ parts: [{ text: ttsPrompt }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
+                    }
+                },
+            };
+
+            try {
+                const response = await fetch(TTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error(`TTS API returned status ${response.status}`);
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    if (!sampleRateMatch) throw new Error("Could not find sample rate in MIME type.");
+                    const sampleRate = parseInt(sampleRateMatch[1], 10);
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    if (audioPlayer) {
+                         audioPlayer.pause();
+                         URL.revokeObjectURL(audioPlayer.src);
+                    }
+                    audioPlayer = new Audio(audioUrl);
+                    
+                    audioPlayer.onplaying = () => {
+                        isAudioPlaying = true;
+                        buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12h-4M7 12H3m14 0l-3-3m3 3l-3 3M7 12l3-3m-3 3l3 3"></path></svg> Stop Audio`;
+                        buttonElement.disabled = false;
+                    };
+                    
+                    audioPlayer.onended = audioPlayer.onpause = () => {
+                        isAudioPlaying = false;
+                        buttonElement.innerHTML = originalButtonContent;
+                        buttonElement.disabled = false;
+                    };
+
+                    await audioPlayer.play();
+                } else {
+                    throw new Error("Invalid or missing audio data in TTS response.");
+                }
+
+            } catch (error) {
+                console.error("TTS Playback Error:", error);
+                buttonElement.innerHTML = `<span class="text-red-500">${getStaticText('ttsError')}</span>`;
+                buttonElement.disabled = false;
+                setTimeout(() => {
+                     buttonElement.innerHTML = originalButtonContent;
+                }, 3000);
+            }
+        }
+        
+        // ** Advanced Intent Detection (LLM Call) **
+        async function callGeminiIntentApi(userQuery) {
+            const systemPrompt = `You are an extremely advanced AI Chatbot for Marathwada Mitramandal College of Engineering (MMCOE), Pune. Your purpose is to provide highly accurate, detailed, and formal information.
+
+                Your process for every query MUST be:
+                1.  **Intent Detection & Correction:** Analyze the user's input, even if it contains extreme misspellings (e.g., 'wadr is bas service'). Determine the precise, correct, and well-formed intended question.
+                2.  **MMCOE Expert Response:** Provide a single, detailed, formal, and polished response to the corrected question, drawing on your knowledge about MMCOE. Ensure the response is always polite and professional.
+
+                Your response MUST follow this exact formatting structure to assist the user in understanding the correction and the answer. Do NOT add any extra text or conversation outside this format:
+                **AI Detected Intended Query (Spelling Corrected):** [The corrected question]
+                **MMCOE Expert Response:** [Your detailed, formal, and polished answer]`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }], 
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            const maxRetries = 3;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(LLM_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`API returned status ${response.status}`);
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return { answer: candidate.content.parts[0].text, score: 0.90, docId: null, key: null, isLLM: true };
+                    }
+                    throw new Error("Invalid response structure from API.");
+
+                } catch (error) {
+                    console.error(`Gemini API Attempt ${attempt + 1} failed:`, error);
+                    if (attempt < maxRetries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, getDelay(attempt)));
+                    } else {
+                        // Return a generic error on final failure
+                        return { answer: getStaticText('genericError'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'genericError', isLLM: false };
+                    }
+                }
+            }
+        }
+
+
+        // --- 6. MAIN QUERY PROCESSOR ---
+        
+        function detectDerogatoryMessage(query) {
+            const cleanedQuery = query.toLowerCase().replace(/[^a-z0-9\s\u0900-\u097f]/g, ' '); 
+            const words = cleanedQuery.split(/\s+/).filter(word => word.length > 0);
+            
+            for (const word of words) {
+                if (DEROGATORY_KEYWORDS.has(word)) {
+                    console.warn(`Derogatory keyword detected: ${word}`);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkPriorityKeywords(query) {
+            const lowerCaseQuery = query.toLowerCase();
+            const queryTokens = tokenize(lowerCaseQuery); // Tokenize once for token-level matching
+            let docId = null;
+
+            // Check if the query *contains* a keyword
+            if (PRIORITY_KEYWORDS.BUS.some(keyword => lowerCaseQuery.includes(keyword))) {
+                docId = "D007_BUS";
+            } 
+            else if (PRIORITY_KEYWORDS.HOSTEL.some(keyword => lowerCaseQuery.includes(keyword))) {
+                docId = "D006_HOSTEL";
+            } 
+            // Use token-level matching for courses to catch 'BE' or 'CS' better
+            else if (PRIORITY_KEYWORDS.COURSES.some(pk => queryTokens.some(qt => qt.includes(pk) || pk.includes(qt)))) {
+                docId = "D001_COURSES";
+            } 
+            else if (PRIORITY_KEYWORDS.PLACEMENTS.some(keyword => lowerCaseQuery.includes(keyword))) {
+                docId = "D004_PLACEMENTS";
+            }
+
+            if (docId) {
+                const answer = currentLanguage === 'en' ? KNOWLEDGE_BASE.get(docId) : MARATHI_KNOWLEDGE_BASE.get(docId);
+                return { answer: answer, score: 0.99, docId: docId, key: null, isLLM: false }; 
+            }
+            return null;
+        }
+        
+        /**
+         * Main function to process user query, prioritizing local KB lookup (fast)
+         * before falling back to the LLM (slower but intelligent).
+         */
+        async function processQuery(query) {
+            if (detectDerogatoryMessage(query)) {
+                // Use a generic response to avoid processing offensive language
+                return { answer: getStaticText('derogatoryResponse'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'derogatoryResponse', isLLM: false };
+            }
+
+            // 1. Check local Knowledge Base first (FAST responses)
+            const kbResult = checkPriorityKeywords(query);
+            if (kbResult) {
+                return kbResult;
+            }
+            
+            // 2. Fallback to Advanced Intent Detection (LLM Call, slower but smarter)
+            console.log("Falling back to Gemini LLM for complex intent detection...");
+            const llmResult = await callGeminiIntentApi(query);
+
+            // 3. Check if LLM response is a generic error or a threshold miss
+            if (llmResult.key === 'genericError') {
+                return { answer: getStaticText('genericError'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'genericError', isLLM: false };
+            }
+            
+            // 4. Return the LLM's detailed response
+            return llmResult;
+        }
+
+        
+        // --- 7. UI MANIPULATION FUNCTIONS (Updated to include TTS) ---
+        
+        function addMessage(sender, text, score = null, identifier = null, type = null, originalQuery = null) {
+            const chatWindow = document.getElementById('chat-window');
+            const isUser = sender === 'user';
+            
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} new chat-message`;
+
+            const messageBubble = document.createElement('div');
+            
+            messageBubble.className = `
+                max-w-xs md:max-w-md lg:max-w-lg p-3 my-2 shadow-lg transition-all duration-300 ease-in-out message-bubble-wrapper
+                ${isUser 
+                    ? 'bg-blue-600 text-white rounded-t-xl rounded-bl-xl ml-auto dark:bg-blue-700' 
+                    : 'bg-white text-gray-800 rounded-t-xl rounded-br-xl mr-auto border border-blue-200 dark:bg-gray-900 dark:text-gray-100 dark:border-blue-800'
+                }
+            `;
+            
+            let content = `<div class="font-bold mb-1 ${isUser ? 'text-white' : 'text-blue-700 dark:text-blue-400'}">${isUser ? getStaticText('user') : getStaticText('bot')}</div>`;
+            
+            // Handle LLM formatted content (Corrected Query + Response)
+            let displayContent = text;
+            if (!isUser && type === 'llm') {
+                displayContent = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            } else {
+                displayContent = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }
+
+            content += `<p class="whitespace-pre-wrap">${displayContent}</p>`;
+
+            if (score !== null && !isUser) {
+                const scoreText = score > 0.0 ? score.toFixed(4) : "0.0000";
+                content += `<p class="mt-2 text-xs opacity-80 italic ${score > 0.15 ? 'text-blue-900 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}">${getStaticText('confidence')} ${scoreText}</p>`;
+            }
+            
+            messageBubble.innerHTML = content;
+
+            // --- TTS Button (Feature 1) ---
+            // Only add listen button for bot responses (not for error messages or user messages)
+            if (!isUser && score !== 0.0) { 
+                const ttsButton = document.createElement('button');
+                ttsButton.className = 'mt-3 flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors duration-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500';
+                ttsButton.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a2 2 0 01-2-2V9a2 2 0 012-2h1.586l4.293-4.293A1 1 0 0112 3v18a1 1 0 01-1.121.951L5.586 15z"></path></svg> ${getStaticText('ttsListen')}`;
+                
+                ttsButton.onclick = function() {
+                    // Extract the main response text for TTS
+                    let ttsText = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
+                    ttsText = ttsText.replace(/\<br\>/g, ' '); // Remove <br> from LLM response
+                    ttsText = ttsText.replace(/<\/?strong>/g, ''); // Remove strong tags
+                    callGeminiTtsApi(ttsText, ttsButton);
+                };
+                
+                messageBubble.appendChild(ttsButton);
+            }
+            // End TTS Button
+
+            // --- Translation Feature (Retained) ---
+            if (!isUser && identifier && type === 'kb') {
+                const targetLangCode = currentLanguage === 'en' ? 'mr' : 'en';
+                const currentLangLabel = currentLanguage === 'en' ? 'मराठी' : 'English';
+
+                const translationLink = document.createElement('button');
+                translationLink.className = 'mt-2 text-xs font-semibold underline opacity-70 hover:opacity-100 transition-opacity duration-200 focus:outline-none block w-fit text-blue-800 dark:text-blue-300';
+                translationLink.textContent = `Translate to ${currentLangLabel}`;
+
+                const translationContainer = document.createElement('div');
+                translationContainer.className = 'translation-text mt-1 p-2 text-sm italic bg-blue-100 dark:bg-gray-800 rounded-lg hidden border-l-4 border-blue-400';
+
+                translationLink.onclick = function() {
+                    const isCurrentlyVisible = !translationContainer.classList.contains('hidden');
+                    
+                    if (isCurrentlyVisible) {
+                        translationContainer.classList.add('hidden');
+                        translationLink.textContent = `Translate to ${currentLangLabel}`;
+                    } else {
+                        let translatedText = currentLanguage === 'en' ? MARATHI_KNOWLEDGE_BASE.get(identifier) : KNOWLEDGE_BASE.get(identifier);
+                        translationContainer.innerHTML = translatedText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                        translationContainer.classList.remove('hidden');
+                        translationLink.textContent = `Hide Translation (${currentLanguage === 'en' ? 'English' : 'Marathi'})`;
+                    }
+                };
+
+                messageBubble.appendChild(translationLink);
+                messageBubble.appendChild(translationContainer);
+            }
+            // End Translation Feature
+
+            messageContainer.appendChild(messageBubble);
+            chatWindow.appendChild(messageContainer);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function handleInput(query, isVoice = false, originalAudioQuery = null) {
+            if (!query || query.trim().length === 0) {
+                addMessage('bot', getStaticText('emptyQuery'));
+                return;
+            }
+            
+            // If audio is playing, stop it
+            if (isAudioPlaying && audioPlayer) {
+                audioPlayer.pause();
+                isAudioPlaying = false;
+            }
+            
+            // 1. Add user message
+            if (isVoice) {
+                addMessage('user', query, null, null, null, originalAudioQuery); 
+            } else {
+                addMessage('user', query);
+                document.getElementById('user-input').value = '';
+            }
+
+            // 2. Disable input and show typing indicator
+            const inputField = document.getElementById('user-input');
+            inputField.disabled = true;
+            document.getElementById('send-button').disabled = true;
+            document.getElementById('mic-button').disabled = true;
+            const typingIndicatorId = addTypingIndicator();
+
+            // 3. Process the query (Awaiting LLM response)
+            // This is the call that routes to the fast KB or the slower LLM
+            const result = await processQuery(query);
+
+            // 4. Remove typing indicator and display response
+            removeTypingIndicator(typingIndicatorId);
+            
+            const identifier = result.docId || result.key;
+            const type = result.isLLM ? 'llm' : 'kb'; 
+
+            addMessage('bot', result.answer, result.score, identifier, type);
+            
+            inputField.disabled = false;
+            document.getElementById('send-button').disabled = false;
+            document.getElementById('mic-button').disabled = false;
+            inputField.focus();
+        }
+
+        // Handles form submission for text
+        function handleUserInput(event) {
+            if (event && event.preventDefault) event.preventDefault();
+            const inputField = document.getElementById('user-input');
+            const query = inputField.value.trim();
+            handleInput(query);
+        }
+        
+        function addTypingIndicator() {
+            const chatWindow = document.getElementById('chat-window');
+            const indicatorId = 'typing-indicator-' + Date.now();
+            const indicator = document.createElement('div');
+            indicator.id = indicatorId;
+            indicator.className = 'flex justify-start new p-3 my-2';
+            indicator.innerHTML = `
+                <div class="bg-white text-gray-800 rounded-full p-2 text-sm italic border border-blue-200 dark:bg-gray-900 dark:text-gray-100 dark:border-blue-800 flex items-center space-x-2">
+                    <span class="text-xs">${getStaticText('typing')}</span>
+                    <div class="loading-dots">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                </div>
+            `;
+            chatWindow.appendChild(indicator);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return indicatorId;
+        }
+
+        function removeTypingIndicator(id) {
+            const indicator = document.getElementById(id);
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // --- 8. VOICE RECORDING LOGIC (SIMULATED ASR) ---
+
+        const SIMULATED_QUERIES_EN = [
+            "wadr is bas service for me", 
+            "tell me about the be courses you offer", 
+            "Is there a place to liv on campis", 
+            "how to get a job at mmcoe after grajuashun", 
+            "wat is the NAAC grade", 
+            "hwo do i get admission" 
+        ];
+
+        const SIMULATED_QUERIES_MR = [
+            "बस सेवासोयीबद्दल माहिती द्या",
+            "तुमचे इंजीनीरिंग विषय कोणते आहेत?",
+            "रहायची सोय उपलब्ध आहे का?",
+            "पॅकेज किती पर्यंत मिळतो?",
+            "NAAC ग्रेड काय आहे?",
+            "प्रवेश कसा मिळवायचा"
+        ];
+        
+        function getSimulatedQuery() {
+            const queries = currentLanguage === 'en' ? SIMULATED_QUERIES_EN : SIMULATED_QUERIES_MR;
+            const randomIndex = Math.floor(Math.random() * queries.length);
+            return queries[randomIndex];
+        }
+
+
+        function toggleRecording() {
+            const micButton = document.getElementById('mic-button');
+            const inputField = document.getElementById('user-input');
+            
+            if (isRecording) {
+                // STOP RECORDING
+                micButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'recording-pulse');
+                micButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                micButton.disabled = true;
+                isRecording = false;
+                mediaRecorder.stop();
+                
+                // Show transcription status
+                inputField.placeholder = getStaticText('audioTranscribing');
+                inputField.disabled = true;
+
+            } else {
+                // START RECORDING
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        audioChunks = [];
+                        mediaRecorder = new MediaRecorder(stream);
+
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
+
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            stream.getTracks().forEach(track => track.stop()); 
+
+                            if (audioBlob.size < 5000) { 
+                                inputField.placeholder = getStaticText('placeholder');
+                                inputField.disabled = false;
+                                micButton.disabled = false;
+                                addMessage('bot', 'The voice input was too short. Please try speaking for at least 2 seconds. 🎤');
+                                return;
+                            }
+                            
+                            setTimeout(async () => {
+                                const transcribedQuery = getSimulatedQuery();
+                                const submittedText = getStaticText('audioSubmitted') + transcribedQuery;
+                                
+                                await handleInput(transcribedQuery, true, submittedText);
+                                
+                                inputField.placeholder = getStaticText('placeholder');
+                                inputField.disabled = false;
+                                micButton.disabled = false;
+                            }, 1500 + Math.random() * 500); 
+                        };
+
+                        mediaRecorder.start();
+                        isRecording = true;
+                        micButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                        micButton.classList.add('bg-red-600', 'hover:bg-red-700', 'recording-pulse');
+                        inputField.placeholder = "🔴 Recording... Click to Stop";
+                        inputField.disabled = true;
+                    })
+                    .catch(err => {
+                        console.error('Microphone access error:', err);
+                        addMessage('bot', getStaticText('audioFailure'));
+                        inputField.disabled = false;
+                        micButton.disabled = false;
+                        inputField.placeholder = getStaticText('placeholder');
+                    });
+            }
+        }
+        
+        // --- 9. THEME AND LANGUAGE MANAGEMENT ---
+        
+        const htmlElement = document.documentElement;
+
+        function updateUIText() {
+            const lang = currentLanguage;
+            document.getElementById('user-input').placeholder = getStaticText('placeholder');
+            
+            const langButton = document.getElementById('lang-switch-button');
+            langButton.textContent = STATIC_TEXT[lang]['langSwitch'];
+            langButton.title = STATIC_TEXT[lang]['langSwitchTitle'];
+
+            document.getElementById('theme-toggle').title = STATIC_TEXT[lang]['themeToggleTitle'];
+
+            // Update welcome panel text
+            document.getElementById('welcome-panel-text').innerHTML = (lang === 'en' ? WELCOME_PANEL_TEXT : MARATHI_WELCOME_PANEL_TEXT).replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        }
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'mr' : 'en';
+            updateUIText();
+            
+            document.getElementById('chat-window').innerHTML = '';
+            addMessage('bot', getStaticText('welcome'), null, 'welcome', 'static');
+        }
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('theme-toggle-icon').innerHTML = '&#9728;'; // Sun icon ☀️
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('theme-toggle-icon').innerHTML = '&#9790;'; // Moon icon 🌙
+            }
+        }
+
+        function setupThemeAndLanguage() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                applyTheme(true);
+            } else {
+                applyTheme(false);
+            }
+
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                applyTheme(!htmlElement.classList.contains('dark'));
+            });
+
+            document.getElementById('lang-switch-button').addEventListener('click', toggleLanguage);
+            document.getElementById('mic-button').addEventListener('click', toggleRecording);
+            
+            updateUIText();
+        }
+        
+        // --- 10. ADVANCED WELCOME ANIMATION ---
+        function showWelcomeAnimation() {
+            const splashScreen = document.getElementById('splash-screen');
+            
+            setTimeout(() => {
+                splashScreen.classList.add('splash-fade-out');
+                
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 1500); 
+
+            }, 4500); 
+
+            setTimeout(() => {
+                addMessage('bot', getStaticText('welcome'), null, 'welcome', 'static'); 
+                document.getElementById('user-input').focus();
+            }, 6500); 
+        }
+
+
+        // --- 11. INITIALIZATION (Entry Point) ---
+
+        window.onload = function() {
+            initializeKnowledgeBase();
+            setupThemeAndLanguage();
+            
+            showWelcomeAnimation();
+
+            document.getElementById('chat-form').addEventListener('submit', handleUserInput);
+            document.getElementById('user-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    handleUserInput(e);
+                }
+            });
+        };
+
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center font-sans relative overflow-hidden p-4">
+    
+    <!-- SPLASH SCREEN OVERLAY -->
+    <div id="splash-screen" class="absolute inset-0 bg-blue-800 dark:bg-blue-950 flex flex-col items-center justify-center z-50 transition-all duration-500">
+        <div class="cube-wrapper">
+            <div class="cube-face front"><span class="text-base font-extrabold tracking-widest">MMCOE VECTOR</span></div>
+        </div>
+        <p class="text-xl mt-[200px] font-semibold tracking-wide text-white opacity-90 z-50">
+            <span class="animate-pulse">Initializing Advanced AI Tools...</span>
+        </p>
+    </div>
+    
+    <!-- Main Desktop Content Wrapper - h-full ensures responsiveness -->
+    <div id="desktop-layout-wrapper" class="w-full max-w-6xl h-full grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 main-content-slide-in">
+        
+        <!-- 1. CHAT INTERFACE (2/3 width) -->
+        <div id="main-content" class="md:col-span-2 flex flex-col bg-white dark:bg-gray-800 polished-card-shadow rounded-2xl overflow-hidden h-full">
+            
+            <!-- Chat Header -->
+            <header class="p-4 bg-blue-700 text-white shadow-lg flex items-center justify-between rounded-t-2xl dark:bg-blue-900">
+                <h1 class="text-xl font-extrabold flex items-center">
+                    <img 
+                        src="https://placehold.co/40x40/0A58A3/FFFFFF?text=MMCOE" 
+                        alt="MMCOE Logo" 
+                        class="w-8 h-8 mr-3 rounded-lg shadow-md" 
+                        onerror="this.onerror=null;this.src='https://placehold.co/40x40/0A58A3/FFFFFF?text=MMCOE';"
+                    >
+                    <div class="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-300 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0 0 6h0a3 3 0 0 0 0-6Z"/><path d="M19 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2Z"/><path d="M12 18V6"/></svg>
+                        <span>MMCOE Vector Chatbot</span>
+                    </div>
+                </h1>
+                
+                <div class="flex items-center gap-3">
+                    <button
+                        id="lang-switch-button"
+                        class="p-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 text-sm font-bold leading-none px-3"
+                        title="मराठी भाषेत बदला"
+                    >
+                        मराठी
+                    </button>
+
+                    <button
+                        id="theme-toggle"
+                        aria-label="Toggle dark mode"
+                        class="p-2 rounded-full text-white hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors duration-200 text-xl font-bold leading-none"
+                        title="Toggle Dark/Light Mode"
+                    >
+                        <span id="theme-toggle-icon" class="block">&#9790;</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Window - flex-grow ensures it takes all available height -->
+            <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto bg-blue-50 dark:bg-gray-950">
+                <!-- Messages will be added here by JavaScript -->
+            </div>
+
+            <!-- Input Bar -->
+            <footer class="p-4 bg-gray-200 border-t border-gray-300 dark:bg-gray-700 dark:border-gray-600">
+                <form id="chat-form" class="flex gap-3">
+                    <!-- Text Input Bar -->
+                    <input 
+                        type="text"
+                        id="user-input"
+                        placeholder="Ask a question about MMCOE..."
+                        autocomplete="off"
+                        class="flex-grow p-3 border border-blue-400 rounded-full focus:ring-4 focus:ring-blue-300 focus:border-blue-500 shadow-inner text-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:border-blue-600 dark:focus:ring-blue-500 transition-all duration-300"
+                    />
+                    
+                    <!-- Voice Input Button -->
+                    <button
+                        type="button"
+                        id="mic-button"
+                        title="Record a voice message (Simulated)"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg active:shadow-sm disabled:bg-gray-400 dark:bg-blue-800 dark:hover:bg-blue-700"
+                    >
+                        <!-- Mic Icon -->
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0M12 19v2M12 2v5M8.7 8.7l2.1 2.1"/></svg>
+                    </button>
+
+                    <!-- Send Button -->
+                    <button
+                        type="submit"
+                        id="send-button"
+                        title="Send text message"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg active:shadow-sm disabled:bg-gray-400 dark:bg-blue-800 dark:hover:bg-blue-700"
+                    >
+                        <!-- Send Icon -->
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </form>
+            </footer>
+
+        </div>
+
+        <!-- 2. UTILITY PANEL (1/3 width) - Now only contains the Welcome Hub -->
+        <div id="utility-panel" class="md:col-span-1 flex flex-col gap-6 h-full">
+            
+            <!-- Welcome/Key Features Panel - Now takes full height -->
+            <div id="welcome-panel" class="p-6 flex-grow bg-white dark:bg-gray-800 polished-card-shadow rounded-2xl h-full overflow-y-auto">
+                <h2 class="text-2xl font-extrabold text-blue-700 dark:text-blue-400 border-b pb-2 mb-4 border-blue-200 dark:border-gray-600">
+                    MMCOE Knowledge Hub
+                </h2>
+                <div id="welcome-panel-text" class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                    <!-- Content set by JS in updateUIText -->
+                </div>
+                
+                <ul class="space-y-3 p-4 bg-blue-50 dark:bg-gray-900 rounded-xl shadow-inner border border-blue-100 dark:border-gray-700">
+                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        <span class="mr-2 text-xl">🧠</span> **Advanced AI Intent Detection** for misspellings!
+                    </li>
+                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        <span class="mr-2 text-xl">🔊</span> **New! Text-to-Speech (TTS)** playback.
+                    </li>
+                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        <span class="mr-2 text-xl">⚡</span> **Instant KB Responses** for keywords like "placements" or "bus".
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+        
+    </div>
+</body>
+</html>
