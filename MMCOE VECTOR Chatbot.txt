@@ -3,245 +3,776 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMCOE Vector Chatbot v7 (Core QnA Only)</title>
-    <!-- Load Tailwind CSS for modern aesthetics, curves, and responsiveness -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>MMCOE Vector - Direct API Chatbot</title>
+    
+<script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+<script src="https://unpkg.com/lucide@latest"></script> 
     <style>
-        /* Base styles and transitions for a smooth dark mode experience */
-        body {
-            transition: background-color 0.4s ease;
-            font-family: 'Inter', sans-serif;
-            /* Ensure body covers the full viewport height */
-            height: 100vh; 
-            margin: 0;
-            padding: 0;
-        }
-        /* Apply smooth transition to all structural elements */
-        #main-content, header, footer, #user-input, #welcome-panel, .message-bubble-wrapper {
-            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-        }
-
-        /* Custom scrollbar for aesthetics */
-        #chat-window::-webkit-scrollbar { width: 8px; background-color: #f0f8ff; }
-        #chat-window::-webkit-scrollbar-thumb { background-color: #3b82f6; border-radius: 10px; }
-        .dark #chat-window::-webkit-scrollbar { background-color: #1f2937; }
-        .dark #chat-window::-webkit-scrollbar-thumb { background-color: #60a5fa; }
-
-        /* Animation for new chat messages */
-        .chat-message.new {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInSlideUpMessage 0.3s ease-out forwards;
-        }
-
-        @keyframes fadeInSlideUpMessage {
-            to { opacity: 1; transform: translateY(0); }
+        
+        /* Custom Styles for the 'MMCOE Vector' theme - ORIGINAL VERSION */
+        
+        /* New styles for the initial decompilation animation */
+        #intro-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            background-color: black;
         }
         
-        /* Neumorphism/Polished Card Shadow */
-        .polished-card-shadow {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-        }
-        .dark .polished-card-shadow {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(31, 41, 55, 0.7) inset;
-        }
-
-        /* Loading animation for the LLM call */
-        .loading-dots {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 20px;
-        }
-        .loading-dots div {
-            width: 8px;
-            height: 8px;
-            margin: 0 3px;
-            background-color: #3b82f6;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .dark .loading-dots div { background-color: #60a5fa; }
-        .loading-dots div:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dots div:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
-        
-        /* TTS Loading Spinner */
-        .tts-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3b82f6;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Ensure main content is full screen when revealed */
+        #main-content {
+            height: 100vh;
+            width: 100vw;
+            position: relative; 
+            opacity: 0; /* Starts hidden and fades in */
         }
 
-        /* --- SPLASH/TRANSITION CSS --- */
-        @keyframes splashOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes slideInUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
-        .splash-fade-out { animation: splashOut 1.5s ease-in-out 4.5s forwards; }
-        .main-content-slide-in { animation: slideInUp 1.5s cubic-bezier(0.4, 0, 0.2, 1) 4.5s forwards; }
-        .cube-wrapper { width: 160px; height: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-style: preserve-3d; animation: sheetFall 4.5s cubic-bezier(.17,.67,.57,1.48) forwards; }
-        @keyframes sheetFall { 0% { transform: translate(-50%, -50%) translateY(-1500px) rotateX(20deg); opacity: 0; filter: blur(15px); } 1% { opacity: 1; filter: blur(0px); } 95% { transform: translate(-50%, -50%) translateY(-10px) rotateX(0deg); } 100% { transform: translate(-50%, -50%) translateY(0px) rotateX(0deg); } }
-        .cube-face { position: absolute; width: 160px; height: 120px; background: linear-gradient(135deg, #fff, #f0f4f9); border: 1px solid #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #1e3a8a; text-align: center; border-radius: 44px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); user-select: none; transform: translateZ(2px); background: linear-gradient(135deg, #e0e7ff, #fff); border-bottom: 2px solid #1e3a8a; }
-        /* Voice Recording Status UI */
-        .recording-pulse { animation: recordingPulse 1s infinite alternate; }
-        @keyframes recordingPulse { from { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } to { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } }
-    </style>
-    <script>
-        // --- GEMINI API CONFIGURATION ---
-        const apiKey = ""; // Canvas will provide this automatically.
-        const LLM_MODEL = 'gemini-2.5-flash-preview-05-20';
-        const LLM_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${LLM_MODEL}:generateContent?key=${apiKey}`;
-        const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
-        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
 
-
-        // --- 1. KNOWLEDGE BASE SETUP ---
-        const KNOWLEDGE_BASE = new Map();
-        const MARATHI_KNOWLEDGE_BASE = new Map();
-        
-        // Removed gendered words and replaced with "BLEEP" in derogatory list
-        const DEROGATORY_KEYWORDS = new Set([
-            "fuck", "fucking", "fck", "shit", "bitch", "asshole", "motherfucker", "cunt", "piss", "bastard", "prick", "queer", "wanker", "twat", "idiot", 
-            "stupid", "dumb", "fool", "moron", "loser", "jerk", "useless", "worst", "damn", "hell", "suck", "abuse", 
-            "slur", "hate", "retard", "spaz", "co*k", "d*ck", "p*rn", "s*x", "whore", "slut", "goddamn", 
-            "nigga", "nigger", "kike", "chink", "gook", "tranny", "faggot", "s*xual", "rapist", "pedophile", "incest", 
-            "molester", "suicide", "k*ll", "die", "dead", "g*ay", "l*bian", "tr*p", "gtfo", "lmao", "rofl", "ass",
-            // Marathi/Hindi Transliterations & Common Slang
-            "chutiya", "bhikari", "murkh", "veda", "gadhv", "rand", "lavda", "jhaat", "zopad", "m*darchod",
-            "ch*d", "bhadwa", "lund", "suar", "bakchod", "bhadve", "sale", "kutra", "h*aramzada", "k*amchor",
-            "g**nd", "bhosdi", "chappri", "d*ala", "g*ndo", "chokna", "chakka", "maza", "dh*ndha", "ghanta"
-        ]);
-        
-        const PRIORITY_KEYWORDS = {
-            BUS: ["bus", "transport", "shuttle", "commute", "travel", "pick up", "drop off"],
-            HOSTEL: ["hostel", "lodging", "stay", "residence", "dorm", "accommodation", "mess", "canteen"],
-            COURSES: ["courses", "curriculum", "syllabus", "major", "field", "btech", "bachelors", "be", "engineering", "programs", "departments", "branch", "subjects"],
-            PLACEMENTS: ["placements", "salary", "package", "recruiter", "recruitment", "t&p", "tp cell", "tpo", "companies", "job", "jobs", "highest package", "average package"]
-        };
-
-
-        function initializeKnowledgeBase() {
-            const docs = [
-                { id: "D001_COURSES", 
-                    en: "**MMCOE offers a robust suite of both Undergraduate (B.E.) and Postgraduate (P.G.) programs designed to meet current industry demands.** The B.E. programs include: **Computer Engineering**, **Information Technology**, **Electronics and Telecommunication Engineering (E&TC)**, **Electrical Engineering**, **Artificial Intelligence and Data Science (AI & DS)**, and **Mechanical Engineering**. For P.G. studies, the college offers the **Master of Business Administration (MBA)** and M.E. in Computer Engineering. The curriculum across all fields is rigorously aligned with Savitribai Phule Pune University (SPPU) standards and is regularly updated for industry relevance.", 
-                    mr: "**MMCOE सध्याच्या उद्योग मागण्या पूर्ण करण्यासाठी डिझाइन केलेले पदवीपूर्व (B.E.) आणि पदव्युत्तर (P.G.) कार्यक्रमांचा एक मजबूत संच ऑफर करते.** B.E. कार्यक्रमांमध्ये हे समाविष्ट आहे: **कॉम्प्युटर इंजिनिअरिंग**, **इन्फॉर्मेशन टेक्नॉलॉजी**, **इलेक्ट्रॉनिक्स आणि टेलिकम्युनिकेशन इंजिनिअरिंग (E&TC)**, **इलेक्ट्रिकल इंजिनिअरिंग**, **आर्टिफिशियल इंटेलिजन्स आणि डेटा सायन्स (AI & DS)**, आणि **मेकॅनिकल इंजिनिअरिंग**. P.G. अभ्यासांसाठी, कॉलेज **मास्टर ऑफ बिझनेस ॲडमिनिस्ट्रेशन (MBA)** आणि कॉम्प्युटर इंजिनिअरिंगमध्ये M.E. ऑफर करते. सर्व शाखांमधील अभ्यासक्रम सावित्रीबाई फुले पुणे विद्यापीठाच्या (SPPU) मानकांशी कठोरपणे संरेखित आहेत आणि उद्योग-सुसंगततेसाठी नियमितपणे अद्यतनित केले जातात." 
-                },
-                { id: "D004_PLACEMENTS", 
-                    en: "**The Training and Placement (T&P) Cell at MMCOE is highly proactive, demonstrating strong outcomes year after year.** While placement figures are subject to market conditions, the data reflects consistent performance. The **average package generally ranges around INR 5.5 LPA**, and the **highest package reported has been around INR 19 LPA**. Top recruiting domains include major IT, Core Engineering sectors, and Management Consulting firms. The T&P cell also focuses on extensive student training in soft skills and technical readiness to maximize career opportunities.", 
-                    mr: "**MMCOE मधील प्रशिक्षण आणि प्लेसमेंट (T&P) सेल अत्यंत सक्रिय आहे, दरवर्षी मजबूत परिणाम दर्शवितो.** प्लेसमेंटची आकडेवारी बाजारातील परिस्थितीवर अवलंबून असली तरी, डेटा सातत्यपूर्ण कामगिरी दर्शवतो. **सरासरी पॅकेज सामान्यतः INR 5.5 LPA च्या आसपास असते**, आणि **सर्वात जास्त पॅकेज INR 19 LPA च्या आसपास नोंदवले गेले आहे**. शीर्ष भरती डोमेन्समध्ये प्रमुख आयटी, कोअर इंजिनिअरिंग क्षेत्रे आणि व्यवस्थापन सल्लागार कंपन्यांचा समावेश आहे. T&P सेल करिअरच्या संधी वाढवण्यासाठी विद्यार्थ्यांच्या सॉफ्ट स्किल्स आणि तांत्रिक तयारीवर देखील लक्ष केंद्रित करतो." 
-                },
-                { id: "D006_HOSTEL", 
-                    en: "**MMCOE offers comprehensive, separate residential facilities (hostels) for students** conveniently located in the vicinity of the main campus. These facilities are designed to provide a conducive environment for academic and personal growth. Key amenities provided include structured mess services offering hygienic meals, reliable Wi-Fi connectivity for academic purposes, and dedicated recreational areas. **Admission to the hostel is merit-based and separate from the academic enrollment process.**", 
-                    mr: "**MMCOE विद्यार्थ्यांना मुख्य कॅम्पसच्या जवळ असलेल्या ठिकाणी सोयीस्करपणे, स्वतंत्र निवासी सुविधा (वसतिगृह) प्रदान करते.** या सुविधा शैक्षणिक आणि वैयक्तिक वाढीसाठी अनुकूल वातावरण देण्यासाठी डिझाइन केलेल्या आहेत. पुरवलेल्या मुख्य सुविधांमध्ये आरोग्यदायी जेवण देणारी सुव्यवस्थित मेस सेवा, शैक्षणिक हेतूंसाठी विश्वसनीय वाय-फाय कनेक्टिव्हिटी आणि समर्पित मनोरंजक क्षेत्रे समाविष्ट आहेत. **वसतिगृहात प्रवेश शैक्षणिक प्रवेश प्रक्रियेपासून वेगळा आणि गुणवत्ता-आधारित असतो.**" 
-                },
-                { id: "D007_BUS", 
-                    en: "**MMCOE does not currently operate a dedicated transportation or bus service for its students.** It is located in the prominent Kothrud area of Pune, which is exceptionally well-connected by the Pune Mahanagar Parivahan Mahamandal Limited (PMPML) city bus network and various other public transport options. Students are expected to utilize the robust local public and private transport facilities for daily commuting.", 
-                    mr: "**MMCOE सध्या आपल्या विद्यार्थ्यांसाठी समर्पित वाहतूक किंवा बस सेवा चालवत नाही.** ते पुण्यातील प्रमुख कोथरूड परिसरात स्थित आहे, जो पुणे महानगर परिवहन महामंडळ लिमिटेड (PMPML) शहर बस नेटवर्क आणि इतर विविध सार्वजनिक वाहतूक पर्यायांनी उत्कृष्टपणे जोडलेला आहे. विद्यार्थ्यांनी दररोजच्या प्रवासासाठी मजबूत स्थानिक सार्वजनिक आणि खाजगी वाहतूक सुविधांचा उपयोग करणे अपेक्षित आहे." 
-                },
-                { id: "D008_GENERIC_ERROR",
-                    en: "I am having trouble understanding the context of your question. I can provide detailed information about MMCOE programs, admissions, and facilities. Please try using clearer language or specific keywords.",
-                    mr: "तुमच्या प्रश्नाचा संदर्भ समजून घेण्यात मला अडचण येत आहे. मी MMCOE चे कार्यक्रम, प्रवेश आणि सुविधांबद्दल तपशीलवार माहिती देऊ शकतो. कृपया अधिक स्पष्ट भाषा किंवा विशिष्ट कीवर्ड वापरून पहा."
-                }
-            ];
-
-            docs.forEach(doc => {
-                KNOWLEDGE_BASE.set(doc.id, doc.en);
-                MARATHI_KNOWLEDGE_BASE.set(doc.id, doc.mr);
-            });
-        }
-
-        // --- 2. LANGUAGE AND STATIC TEXT MANAGEMENT ---
-        
-        const WELCOME_PANEL_TEXT = "🤖 **Your Dedicated AI Friend:** I'm here to provide comprehensive and instant information about Marathwada Mitramandal College of Engineering (MMCOE). Ask me anything about programs, admissions, or campus facilities! I can also **listen to my answers** for easier comprehension.";
-        const MARATHI_WELCOME_PANEL_TEXT = "🤖 **तुमचा समर्पित AI मित्र:** मी मराठवाडा मित्रमंडळ कॉलेज ऑफ इंजिनिअरिंग (MMCOE) बद्दल सर्वसमावेशक आणि त्वरित माहिती देण्यासाठी येथे आहे. कार्यक्रम, प्रवेश किंवा कॅम्पस सुविधांबद्दल मला काहीही विचारा! मी तुम्हाला **माझी उत्तरे ऐकायला** मदत करू शकेन.";
-
-
-        const STATIC_TEXT = {
-            'en': {
-                welcome: "Hello! I am **MMCOE Vector**, a specialized Q&A system for MMCOE, Pune. I now use an **Advanced AI Intent Detector** for all misspelled or complex questions and can **read out my answers**! Try asking 'wadr is bas service' or 'tell me about the BE courses.' 👍",
-                typing: "Advanced AI is assessing intent and formulating a polished response... 🧠",
-                placeholder: "Ask a question about MMCOE...",
-                user: "You",
-                bot: "MMCOE Vector",
-                confidence: "Confidence (Assessment Score)",
-                genericError: "An issue occurred while processing your request through the Advanced AI system. Please try again with a specific question. 🔑",
-                thresholdMiss: "Based on my internal assessment, your question seems outside my current knowledge domain, which is strictly about the college's programs, admissions, and facilities. Please rephrase your question with more relevant keywords for a better match! 🧐",
-                emptyQuery: "Please enter a valid question about MMCOE. 🤨",
-                derogatoryResponse: "I am here to have a respectful conversation and am programmed to strictly adhere to formal communication standards. I cannot process messages containing derogatory or offensive language. Please ensure your query is rephrased appropriately to continue. Thank you for your understanding. 🤝",
-                langSwitch: "मराठी", 
-                langSwitchTitle: "मराठी भाषेत बदला",
-                themeToggleTitle: "Toggle Dark/Light Mode",
-                audioFailure: "Microphone access denied or recording failed. Please ensure your microphone is connected and access is granted. 🎙️",
-                audioTranscribing: "Transcribing audio... (This is a simulation, actual ASR is unavailable) ⏳",
-                audioSubmitted: "Audio transcribed: ",
-                ttsListen: "Listen to Response",
-                ttsLoading: "Loading Audio...",
-                ttsError: "TTS failed. Try again.",
-            },
-            'mr': {
-                welcome: "नमस्कार! मी **MMCOE वेक्टर** आहे, MMCOE, पुणे साठी एक विशेष प्रश्नोत्तर प्रणाली. मी आता सर्व चुकीच्या स्पेलिंग किंवा जटिल प्रश्नांसाठी **प्रगत AI हेतू डिटेक्टर** वापरतो आणि **माझी उत्तरे वाचून दाखवू शकतो**! 'wadr is bas service' किंवा 'BE अभ्यासक्रमांबद्दल सांगा.' असा प्रश्न विचारून पहा. 👍",
-                typing: "प्रगत AI हेतूचे मूल्यांकन करत आहे आणि एक सुधारित प्रतिसाद तयार करत आहे... 🧠",
-                placeholder: "MMCOE बद्दल तुमचा प्रश्न विचारा...",
-                user: "तुम्ही",
-                bot: "MMCOE वेक्टर",
-                confidence: "आत्मविश्वास (मूल्यांकन स्कोर)",
-                genericError: "प्रगत AI प्रणालीद्वारे तुमच्या विनंतीवर प्रक्रिया करताना एक समस्या आली. कृपया विशिष्ट प्रश्न विचारून पुन्हा प्रयत्न करा. 🔑",
-                thresholdMiss: "माझ्या अंतर्गत मूल्यांकनानुसार, तुमचा प्रश्न माझ्या सध्याच्या ज्ञान क्षेत्राच्या बाहेरचा आहे, जो कठोरपणे कॉलेजचे कार्यक्रम, प्रवेश आणि सुविधांशी संबंधित आहे. कृपया चांगल्या मॅचसाठी तुमचा प्रश्न अधिक संबंधित कीवर्डसह पुन्हा मांडा! 🧐",
-                emptyQuery: "कृपया MMCOE बद्दल एक वैध प्रश्न प्रविष्ट करा. 🤨",
-                derogatoryResponse: "मी येथे आदरणीय संभाषण करण्यासाठी आहे आणि मी औपचारिक संवाद मानकांचे काटेकोरपणे पालन करण्यासाठी प्रोग्राम केलेले आहे. मी अपमानकारक किंवा आक्षेपार्भ भाषा असलेले संदेश प्रक्रियेसाठी घेऊ शकत नाही. कृपया संवाद सुरू ठेवण्यासाठी तुमचा प्रश्न योग्यरित्या पुन्हा मांडा. तुमच्या सहकार्याबद्दल धन्यवाद. 🤝",
-                langSwitch: "English", 
-                langSwitchTitle: "Switch to English Language",
-                themeToggleTitle: "गडद/हलका मोड टॉगल करा",
-                audioFailure: "Microphone access denied or recording failed. Please ensure your microphone is connected and access is granted. 🎙️",
-                audioTranscribing: "ऑडिओचे लिप्यंतरण (Transcribing) करत आहे... (हे एक अनुकरण (simulation) आहे, वास्तविक ASR अनुपलब्ध आहे) ⏳",
-                audioSubmitted: "ऑडिओ लिप्यंतरित: ",
-                ttsListen: "उत्तर ऐका",
-                ttsLoading: "ऑडिओ लोड होत आहे...",
-                ttsError: "TTS अयशस्वी झाले. पुन्हा प्रयत्न करा.",
-            }
-        };
-
-        let currentLanguage = 'en'; 
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
-        let isAudioPlaying = false;
-        let audioPlayer = null;
-
-        function getStaticText(key) { return STATIC_TEXT[currentLanguage][key]; }
-
-        // --- 3. UTILITY FUNCTIONS ---
-        
-        function tokenize(text) {
-            const tokens = [];
-            const cleanedText = text.toLowerCase().replace(/[^a-z0-9\s\u0900-\u097f]/g, ' '); 
-            const words = cleanedText.split(/\s+/);
+        /* Light Mode Variables (Default) */
+        :root {
+            --primary-color: #6C0000; /* Dark Maroon */
+            --primary-light: #C5221F;
+            --highlight-color: #9A1C19; 
             
-            for (const word of words) {
-                if (word.length > 0) {
-                    tokens.push(word);
-                }
-            }
-            return tokens;
+            --background-page: #f3f4f6; 
+            --background-panel: white;
+            --text-color: #1f2937;
+            
+            --chat-bg: white;
+            --user-bg: #fcebeb;
+            --bot-bg: var(--primary-light);
+            
+            --footer-bg: white;
+            --input-bg: #f9fafb;
+            --input-border: #e5e7eb;
         }
 
-        // Helper for Exponential backoff delay calculation.
-        function getDelay(attempt) {
-            return Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 500);
+        /* Dark Mode Overrides */
+        .dark-mode {
+            --primary-color: #FF7043; 
+            --primary-light: #E53935; 
+            --highlight-color: #C5221F;
+            
+            --background-page: #121212; 
+            --background-panel: #1e1e1e;
+            --text-color: #e0e0e0;
+            
+            --chat-bg: #1e1e1e;
+            --user-bg: #333333;
+            --bot-bg: var(--primary-light);
+            
+            --footer-bg: #2d2d2d;
+            --input-bg: #444444;
+            --input-border: #555555;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-page);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
-        // --- 4. TTS UTILITY FUNCTIONS (PCM to WAV conversion) ---
+        /* Main two-column container */
+        #app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1280px; 
+            margin: 0 auto;
+            padding: 24px; 
+        }
+        
+        /* Sidebar and Chat Panel Polish */
+        .polished-panel {
+            border: 1px solid var(--input-border);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
+            background-color: var(--background-panel);
+            transition: box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .dark-mode h1, .dark-mode h2, .dark-mode .text-gray-700, .dark-mode .text-gray-900 {
+            color: var(--text-color) !important;
+        }
 
-        /** Converts a Base64 string to an ArrayBuffer. */
+        /* Chat container for scrolling */
+        .chat-container {
+            height: calc(100vh - 14rem); 
+            overflow-y: auto;
+            background-color: var(--chat-bg);
+            padding: 1.5rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Custom scrollbar for a sleek look */
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: #777;
+        }
+        .dark-mode .chat-container::-webkit-scrollbar-thumb {
+            background-color: #444;
+        }
+        
+        /* User message bubble */
+        .user-message {
+            background-color: var(--user-bg);
+            color: var(--text-color);
+            border-radius: 1.25rem 1.25rem 0.5rem 1.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); 
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Bot message bubble */
+        .bot-message {
+            background-color: var(--bot-bg);
+            color: white;
+            border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s ease;
+        }
+
+        .bot-message a {
+            color: #ffcdd2;
+            text-decoration: underline;
+        }
+        
+        /* Markdown generated styles */
+        .bot-message h1, .bot-message h2, .bot-message h3, .bot-message h4 {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .bot-message ul, .bot-message ol {
+            padding-left: 20px;
+            list-style-type: disc;
+        }
+        .bot-message table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .bot-message th, .bot-message td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            text-align: left;
+        }
+        .bot-message th {
+            background-color: rgba(0, 0, 0, 0.15);
+            font-weight: 700;
+        }
+        .bot-message tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Translation area specific styling */
+        .translation-content h1, .translation-content h2, 
+        .translation-content h3, .translation-content h4 {
+            color: #ffcdd2; /* Lighter color for headers in the translation box */
+        }
+        .translation-content ul, .translation-content ol {
+             color: #ffcdd2;
+        }
+        
+
+        /* Source tags inside bot message (Improved from last version for clarity) */
+        .source-tag {
+            background-color: rgba(0, 0, 0, 0.2); 
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .source-tag:hover {
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Quick Reply Buttons: Softer, filled buttons */
+        .quick-reply-button {
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            background-color: var(--input-bg);
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .quick-reply-button:hover {
+            background-color: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        /* Footer and Input Field Styling */
+        #app-footer {
+            background-color: var(--footer-bg);
+            border-color: var(--input-border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .app-input {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--input-border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .app-input:focus {
+             border-color: var(--highlight-color);
+             box-shadow: 0 0 0 4px rgba(var(--highlight-color), 0.1);
+        }
+        
+        /* Voice Mic Pulsing Effect */
+        .mic-listening {
+            animation: pulse 1.5s infinite;
+            background-color: #ef4444 !important; /* Tailwind red-500 */
+            color: white !important;
+        }
+        
+        /* TTS button styling */
+        .tts-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .tts-button:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .tts-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+    <!-- 1. Fullscreen Canvas for Decompilation Intro -->
+    <canvas id="intro-canvas"></canvas>
+
+    <!-- 2. Main Content Wrapper, hidden until intro finishes -->
+    <div id="main-content" class="hidden h-full w-full"> 
+        
+        <div id="app-container" class="space-x-5">
+            
+            
+<aside class="w-1/4 min-w-[240px] h-full rounded-xl polished-panel flex flex-col p-6 shadow-xl">
+                <h1 class="text-3xl font-extrabold text-[var(--primary-color)] pb-3 mb-4 border-b-2 border-gray-100 dark:border-gray-700">
+                    MMCOE <span class="block text-xl font-semibold text-gray-700">Vector AI</span>
+                </h1>
+
+                <!-- Adjusted from space-y-6 to space-y-4 for compactness -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-bold text-gray-700">AI Capabilities</h2>
+                    
+                    
+                    
+
+                    <!-- Reduced vertical spacing here to accommodate the date tracker -->
+<div class="space-y-2 text-sm text-gray-600 mt-2">
+                        
+                        
+                        <!-- Adjusted padding from p-3 to py-2 px-3 -->
+<div id="voice-query-div" class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150" onclick="document.getElementById('mic-button').click()">
+                            <i data-lucide="mic" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Voice Query (STT)</p>
+                                <p class="text-xs text-gray-500">Hands-free input for questions</p>
+                            </div>
+                        </div>
+                        
+                        
+                        <!-- Adjusted padding from p-3 to py-2 px-3 -->
+<div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="shield" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Real-time Derogatory Language Detection</p>
+                                <p class="text-xs text-gray-500">Ensuring a safe and polite academic environment. 🚫</p>
+                            </div>
+                        </div>
+                        
+                        
+                        <!-- Adjusted padding from p-3 to py-2 px-3 -->
+<div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="volume-2" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0" id="audio-readback-icon"></i>
+                            <div>
+                                <p class="font-medium text-gray-900" id="audio-readback-status">Multi-Language Audio (TTS)</p>
+                                <p class="text-xs text-gray-500">English, Hindi, Marathi playback</p>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Adjusted padding from p-3 to py-2 px-3 -->
+<div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="table" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Structured Tables</p>
+                                <p class="text-xs text-gray-500">Clean tables for courses/fees</p>
+                            </div>
+                        </div>
+                        
+                        
+                        <!-- Adjusted padding from p-3 to py-2 px-3 -->
+<div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="languages" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Translate to Hindi/Marathi</p>
+                                <p class="text-xs text-gray-500">Instant visual translation of responses</p>
+                            </div>
+                        </div>
+
+                        
+
+</div>
+                </div>
+
+                <!-- Date and Day Tracker Element (Adjusted for smaller size: p-4 -> p-3, text-3xl -> text-2xl, and text-xs -> text-[10px]) -->
+                <div id="date-day-tracker" class="mt-4 p-3 rounded-xl text-center shadow-2xl transition duration-300 border-b-4 border-white/50" 
+                     style="background-color: var(--primary-light); color: white;">
+                    <p class="text-[10px] font-semibold opacity-90 mb-1 tracking-wider uppercase">CURRENT SESSION DATE</p>
+                    <p id="current-day" class="text-2xl font-extrabold tracking-wider"></p>
+                    <p id="current-date" class="text-sm font-medium opacity-80 mt-1"></p>
+                </div>
+            </aside>
+
+            
+<section class="flex-grow flex flex-col h-full rounded-xl polished-panel overflow-hidden shadow-xl">
+                
+                
+<header class="bg-[var(--primary-color)] p-4 shadow-lg sticky top-0 z-10 rounded-t-xl">
+                    <h2 class="text-2xl font-extrabold text-white text-center tracking-wide">MMCOE Vector Chat</h2>
+                </header>
+
+                
+<div id="chat-box" class="chat-container flex-grow space-y-4">
+                    
+
+<div class="flex justify-start">
+                        <div class="bot-message p-4 max-w-sm md:max-w-md shadow-lg transition duration-300">
+                            <p class="font-semibold mb-1">Hello! 👋 Welcome to your Educational Assistant Bot.</p>
+                            <p>I'm ready to help you with your queries. How can I assist you today? 🎓</p>
+                        
+                            
+                            
+<div class="mt-3 pt-2 border-t border-white/30 space-y-2">
+                                <div id="tts-buttons-msg-initial" class="flex flex-wrap gap-2 justify-start text-xs font-medium">
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('en', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (EN)
+                                    </button>
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('hi', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (HI)
+                                    </button>
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('mr', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (MR)
+                                    </button>
+                                </div>
+                                <div id="translate-buttons-msg-initial" class="flex justify-end text-right space-x-2 text-xs font-medium">
+                                    <!-- FIX: Updated to call the new helper function, passing 'this' -->
+                                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="mr" onclick="handleInitialTranslation(this, 'mr', 'msg-initial')">Translate to Marathi 🇮🇳</button>
+                                    <span class="text-white/50 mx-1">|</span>
+                                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="hi" onclick="handleInitialTranslation(this, 'hi', 'msg-initial')">Translate to Hindi 🇮🇳</button>
+                                </div>
+                                <div id="translation-container-msg-initial" data-original-text="Hello! 👋 Welcome to your Educational Assistant Bot. I'm ready to help you with your queries. How can I assist you today? Try asking: &quot;What is the fee structure for IT?&quot; or &quot;What are the core subjects in Civil Engineering?&quot; for a structured response!"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+</div>
+                
+                
+<div id="quick-replies" class="p-4 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-xl">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('How do I apply for admission?')">Admission Process 📝</button>
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('What is the fee structure for IT?')">IT Fee Structure 💰</button>
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('What are the core subjects in Civil Engineering?')">Civil Core Subjects 🏗️</button>
+                    </div>
+                </div>
+
+                
+<footer id="app-footer" class="app-footer border-t p-4 flex items-center space-x-3 shadow-2xl">
+                    
+                    
+<button id="theme-toggle-button" onclick="toggleTheme()" class="text-gray-500 hover:text-[var(--highlight-color)] p-2 rounded-full transition duration-150 active:scale-90">
+                        <i data-lucide="moon" class="w-6 h-6"></i>
+                    </button>
+
+                    
+<button id="mic-button" class="text-gray-500 hover:text-[var(--highlight-color)] p-2 rounded-full transition duration-150 active:scale-90" onclick="toggleSpeechRecognition()">
+                        <i data-lucide="mic-2" class="w-6 h-6"></i>
+                    </button>
+
+                    
+<input type="text" id="user-input" placeholder="Ask about MMCOE... or speak to me via the mic" class="app-input flex-grow p-4 rounded-2xl border-2 focus:ring-4 placeholder-gray-400 transition duration-200" onkeydown="if(event.key === 'Enter') sendMessage()">
+                    
+                    
+<button id="send-button" onclick="sendMessage()" class="bg-[var(--primary-light)] hover:bg-[var(--highlight-color)] text-white font-bold py-3 px-7 rounded-2xl shadow-lg transition duration-200 active:scale-[0.98] disabled:bg-gray-400">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </footer>
+
+            </section>
+        </div>
+    </div>
+    
+<script>
+        // --- API Configuration and State ---
+        const API_KEY = "AIzaSyDb_xBqcK2Dw140VchtHUnu5CRKyiJGg3I"; // Canvas environment provides this.
+        const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
+        const CHAT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`; 
+        
+        // --- TTS Configuration (Updated) ---
+        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+        // Using Aoede as a clear, professional female voice. Language config handles the accent.
+        const TTS_VOICE = "Aoede"; 
+        
+        // Language configurations for TTS
+        const LANG_CONFIG = {
+            'en': { code: 'en-IN', label: 'English' }, 
+            'hi': { code: 'hi-IN', label: 'Hindi' },
+            'mr': { code: 'mr-IN', label: 'Marathi' }
+        };
+        
+        let speechRecognitionInstance = null; 
+        
+        // --- Global Animation State (Re-added) ---
+        let canvas, ctx;
+        let font_size = 16;
+        let columns;
+        let drops = [];
+        const matrix_text = "MMCOE VECTOR AI"; 
+        const max_speed_time = 1500; // Time in ms to reach max speed (fast matrix)
+        const matrix_duration = 3000; // Time in ms for the matrix phase
+        const text_reveal_duration = 2000; // Time for the MMCOE Vector text reveal
+        const fade_out_duration = 1000; // Time for fade out
+        let animation_start_time = 0; 
+        let current_phase = 'matrix'; // 'matrix', 'text_reveal', 'fade_out', 'finished'
+        // --- END Animation State ---
+        
+        // --- Context Guide (Same as before) ---
+        const CONTEXT_GUIDE = (
+            "## MMCOE Admission Context Guide\n"
+            + "YOU MUST STRICTLY USE THIS INFORMATION, IN ADDITION TO GOOGLE SEARCH, TO ANSWER QUERIES ABOUT MMCOE. \n"
+            + "Only provide information directly related to MMCOE, its courses, or the required entrance exams (JEE Main, MHT-CET, HSC/CBSE eligibility).\n\n"
+            + "# 🎓 Marathwada Mitra Mandal's College of Engineering (MMCOE) Overview\n"
+            + "MMCOE is a well-known private engineering college located in **Pune, Maharashtra** (Karvenagar). It is a top choice for students seeking admission through the centralized state process. \n"
+            + "| Feature | Detail |"
+            + "| :--- | :--- |"
+            + "| **Affiliation** | Savitribai Phule Pune University (SPPU) |"
+            + "| **Accreditation** | NAAC A Grade |"
+            + "| **Admission Process** | Centralized Admission Process (CAP) rounds conducted by the State CET Cell, Maharashtra. |"
+            + "| **Key Courses** | B.Tech/B.E. programs in Computer Engineering, Information Technology, E&TC, Mechanical Engineering, Artificial Intelligence & Data Science (AI/DS), and Civil Engineering. |\n\n"
+            + "## 📝 Entrance Exams Required for Admission\n"
+            + "Admission to MMCOE's B.Tech programs is strictly based on the merit list prepared using scores from the following entrance tests:\n\n"
+            + "### 1. MHT-CET (Maharashtra Common Entrance Test)\n"
+            + "* **Primary Pathway:** This is the most common and primary examination for admission to engineering colleges in Maharashtra (State Quota Seats).\n"
+            + "* **Eligibility:** Candidates must be Indian nationals and must have passed or appeared for the 10+2 (HSC or equivalent) examination with Physics and Mathematics as compulsory subjects, along with one of Chemistry, Biotechnology, Biology, or Vocational Technical subject.\n"
+            + "* **Selection:** Your MHT-CET score determines your **Maharashtra State Merit Rank**, which is used during the CAP rounds for seat allocation at MMCOE.\n"
+            + "* **Note:** You can appear for both exams and the CAP process will consider the better of the two scores for merit ranking if you apply under the All India category.\n\n"
+            + "### 2. JEE Main (Joint Entrance Examination Main)\n"
+            + "* **All India Quota:** JEE Main scores are used for a limited number of seats (typically 15-20%) reserved under the All India Quota, or if the candidate prefers to use the JEE score over the MHT-CET score.\n"
+            + "* **Selection:** JEE Main ranks are also converted into a State Merit Rank equivalent for participation in the same CAP rounds.\n"
+            + "* **Note:** You can appear for both exams and the CAP process will consider the better of the two scores for merit ranking if you apply under the All India category.\n\n"
+            + "## 📚 Role of HSC & CBSE Board Exams (10+2)\n"
+            + "Your board exam performance (HSC/CBSE) is critical for fulfilling the **eligibility criteria**, though it usually does not directly determine your merit rank, which is based on MHT-CET/JEE scores.\n\n"
+            + "| Board Exam Requirement | Detail |"
+            + "| :--- | :--- |"
+            + "| **Mandatory Subjects** | Physics and Mathematics (compulsory), plus one optional technical subject (e.g., Chemistry). |"
+            + "| **Minimum Aggregate Marks** | You must secure a minimum prescribed percentage in the qualifying examination (HSC/CBSE). Historically, this minimum is typically **45% aggregate** in PCM (Physics, Chemistry, Math) for Open category students, with relaxation (e.g., 40%) for Backward Class categories in Maharashtra. |"
+            + "| **Function** | Board marks serve as a **gate pass**. Without meeting the minimum percentage, you cannot participate in the CAP process, even with a high MHT-CET or JEE score. |\n\n"
+            + "## Key Takeaway\n"
+            + "To get into MMCOE:\n"
+            + "1. **Clear the minimum HSC/CBSE percentage requirement** (45% for general).\n"
+            + "2. **Score a high rank** in either **MHT-CET** (preferred for State Seats) or **JEE Main** (for All India Seats). The admission is finalized through the CAP merit lists.\n\n"
+        );
+        // --- END CONTEXT GUIDE ---
+
+        // The SYSTEM_PROMPT now combines the fixed context with the RAG/search instruction and the new scope/format enforcement.
+        const SYSTEM_PROMPT = CONTEXT_GUIDE + (
+            "You are MMCOE Vector, a friendly, professional, and highly knowledgeable AI assistant. "
+            + "Your expertise is strictly limited to the **educational domain**, including: MMCOE College, "
+            + "other educational institutions, academic subjects, courses, fees, admission processes, and examinations (like MHT-CET/JEE Main). "
+            + "Always provide concise, accurate, and structured answers, leveraging the provided context guide and the latest search results (RAG) to ensure accuracy. "
+            + "### TABULAR FORMAT INSTRUCTION ###\n"
+            + "If the user asks specifically about 'courses offered', 'departments', or 'fee structure', you MUST present the information in a professional, well-structured Markdown table for clarity. "
+            + "### CRITICAL KNOWLEDGE SCOPE INSTRUCTION ###\n"
+            + "If the user's query is *not* related to the educational domain (e.g., questions about weather, sports, celebrity gossip, cooking, or general non-academic topics), "
+            + "you MUST ONLY respond with the following exact, formal phrase: **Sorry, this question is out of my field. My expertise is limited to academic, institutional, and examination-related queries. 🎓**"
+            + "For all in-scope educational questions, provide a relevant, helpful, and concise answer using emojis."
+        );
+        
+        // System instruction for Content Moderation
+        const MODERATION_SYSTEM_PROMPT = (
+            "You are a strict, multilingual content moderator for an academic institution's chatbot. "
+            + "Your sole task is to analyze the user's query for swearing, abusive language, or disrespectful tone "
+            + "in **English and Marathi**. If the language is appropriate, respond ONLY with the word 'CLEAN'. "
+            + "If the language is inappropriate, respond ONLY with the following short, formal request in both languages: "
+            + "'कृपया सभ्य भाषा वापरा. Please use polite language and maintain a formal tone. 🚫'"
+        );
+        
+        // System instruction for the Translation task
+        const TRANSLATION_SYSTEM_PROMPT = (
+            "You are an expert translator. Your task is to accurately translate the provided English text into the target language, "
+            + "either Hindi or Marathi. Respond ONLY with the translated text, preserving the original formatting (like markdown lists or tables) "
+            + "as much as possible."
+        );
+        // --- End Configuration ---
+        
+        // Global Constants
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const micButton = document.getElementById('mic-button');
+
+        // --- NEW UTILITY FUNCTION FOR CONDITIONAL SCROLLING ---
+        /**
+         * Scrolls the chat to the bottom only if the user is already scrolled near the bottom (e.g., reading the newest messages).
+         * This prevents the chat from jumping when the user is reading previous content.
+         */
+        function scrollChatIfNearBottom() {
+            // A threshold of 100 pixels from the bottom edge
+            const scrollThreshold = 100; 
+            const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < scrollThreshold;
+
+            if (isNearBottom) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+        // --- END NEW UTILITY FUNCTION ---
+
+
+        // --- INTRO ANIMATION LOGIC (DECOMPILATION SEQUENCE) ---
+
+        /**
+         * Sets up the canvas and initial state for the matrix effect.
+         */
+        function setupIntroAnimation() {
+            canvas = document.getElementById('intro-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions to viewport size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            columns = Math.floor(canvas.width / font_size);
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+            
+            // Re-run setup on resize to maintain full screen effect
+            window.addEventListener('resize', setupIntroAnimation);
+            
+            animation_start_time = performance.now();
+            current_phase = 'matrix';
+            
+            // Start the animation loop
+            animateIntroCanvas(animation_start_time);
+        }
+
+        /**
+         * Main animation loop using requestAnimationFrame.
+         */
+        function animateIntroCanvas(currentTime) {
+            if (current_phase === 'finished') return;
+
+            const elapsed = currentTime - animation_start_time;
+            
+            // ------------------------------------
+            // Phase 1: Matrix Code Rain (0ms to matrix_duration)
+            // ------------------------------------
+            if (current_phase === 'matrix') {
+                
+                const speed_factor = Math.min(1, elapsed / max_speed_time); 
+                
+                // Draw black rectangle to fade the previous frame
+                ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + speed_factor * 0.1})`; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Set font style
+                ctx.fillStyle = "#FF7043"; // Bright Red/Orange for code
+                ctx.font = `${font_size}px Inter`;
+
+                for (let i = 0; i < drops.length; i++) {
+                    // Pick a random char from matrix_text
+                    const text = matrix_text[Math.floor(Math.random() * matrix_text.length)];
+                    
+                    // Draw the character
+                    const x = i * font_size;
+                    const y = drops[i] * font_size;
+                    ctx.fillText(text, x, y);
+
+                    // Send the drop back to the top randomly
+                    if (y * font_size > canvas.height && Math.random() > 0.98) {
+                        drops[i] = 0;
+                    }
+                    
+                    // Move the drop down, speed increases over time
+                    drops[i]++;
+                    drops[i] += Math.floor(speed_factor * 2); 
+                    
+                    // Phase transition
+                    if (elapsed >= matrix_duration) {
+                        current_phase = 'text_reveal';
+                        // Reset timer for text reveal
+                        animation_start_time = currentTime;
+                    }
+                }
+            }
+            
+            // ------------------------------------
+            // Phase 2: Text Reveal (matrix_duration to matrix_duration + text_reveal_duration)
+            // ------------------------------------
+            else if (current_phase === 'text_reveal') {
+                const text_elapsed = currentTime - animation_start_time;
+                const text_progress = Math.min(1, text_elapsed / text_reveal_duration);
+                
+                // Darken the background more aggressively
+                ctx.fillStyle = `rgba(0, 0, 0, 0.2)`; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the main text
+                ctx.globalAlpha = text_progress;
+                ctx.fillStyle = "#9A1C19"; // MMCOE Primary Color (Dark Maroon)
+                ctx.font = `italic 900 ${100 + 50 * text_progress}px 'Inter', sans-serif`;
+                ctx.textAlign = 'center';
+                // Center text slightly above true center for balance
+                ctx.fillText("MMCOE Vector", canvas.width / 2, canvas.height / 2 + 10); 
+                ctx.globalAlpha = 1.0;
+                
+                // Phase transition
+                if (text_progress >= 1) {
+                    current_phase = 'fade_out';
+                    // Reset timer for fade out
+                    animation_start_time = currentTime; 
+                }
+            }
+
+            // ------------------------------------
+            // Phase 3: Fade Out (fade_out_duration)
+            // ------------------------------------
+            else if (current_phase === 'fade_out') {
+                const fade_elapsed = currentTime - animation_start_time;
+                const fade_progress = Math.min(1, fade_elapsed / fade_out_duration);
+                
+                // Apply transparency to the entire canvas layer
+                canvas.style.opacity = 1.0 - fade_progress;
+
+                // Phase transition
+                if (fade_progress >= 1) {
+                    current_phase = 'finished';
+                    // Final action: switch to the main chat interface
+                    hideIntroAnimation();
+                    return; 
+                }
+            }
+
+            requestAnimationFrame(animateIntroCanvas);
+        }
+
+
+        /**
+         * Hides the animation canvas and reveals the main chat interface.
+         */
+        function hideIntroAnimation() {
+            canvas.style.display = 'none';
+            const mainContent = document.getElementById('main-content');
+            mainContent.classList.remove('hidden');
+            
+            // Start the opacity transition for the main content
+            setTimeout(() => {
+                mainContent.style.transition = 'opacity 0.5s ease-in-out';
+                mainContent.style.opacity = 1;
+                
+                // Now that the main content is visible, we load the required scripts and initialize the chat
+                loadScripts([
+                    'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.6/purify.min.js'
+                ], () => {
+                    console.log('Markdown and DOMPurify loaded. Initializing App...');
+                    initializeSpeechRecognition(); // Initialize STT
+                    applyTheme(); 
+                    updateDateDayTracker(); // Initialize Date/Day Tracker
+                    
+                    // Manually set up the initial message for TTS/Translation
+                    const initialMessageText = "Hello! 👋 Welcome to your Educational Assistant Bot. I'm ready to help you with your queries. How can I assist you today? Try asking: \"What is the fee structure for IT?\" or \"What are the core subjects in Civil Engineering?\" for a structured response!";
+                    const initialTranslationContainer = document.getElementById('translation-container-msg-initial');
+                    
+                    if (initialTranslationContainer) {
+                        // Update the raw text for TTS/Translation
+                        initialTranslationContainer.dataset.originalText = initialMessageText.replace(/`/g, '\\`').replace(/'/g, "\\'");
+                    }
+                    
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                    userInput.focus();
+                    // FIX APPLIED HERE: Use conditional scroll on initial load
+                    scrollChatIfNearBottom();
+                });
+                
+            }, 10);
+            
+            // Remove resize listener to prevent continuous resizing after intro
+            window.removeEventListener('resize', setupIntroAnimation);
+        }
+
+        // --- END INTRO ANIMATION LOGIC ---
+
+
+        // --- NEW FUNCTION: DATE/DAY TRACKER ---
+
+        /**
+         * Updates the date and day tracker in the sidebar.
+         */
+        function updateDateDayTracker() {
+            const now = new Date();
+            // Options for full day name (e.g., TUESDAY)
+            const dayOptions = { weekday: 'long' }; 
+            // Options for Month Day, Year (e.g., October 21, 2025)
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' }; 
+
+            const dayString = now.toLocaleDateString('en-US', dayOptions).toUpperCase();
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+
+            const dayElement = document.getElementById('current-day');
+            const dateElement = document.getElementById('current-date');
+            
+            if (dayElement && dateElement) {
+                dayElement.textContent = dayString;
+                dateElement.textContent = dateString;
+            }
+        }
+        
+        // --- END NEW FUNCTION ---
+        
+        // --- AUDIO UTILITIES (FOR TTS) ---
+        
+        /**
+         * Converts a Base64 string to an ArrayBuffer.
+         * @param {string} base64 The base64 encoded string.
+         * @returns {ArrayBuffer}
+         */
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -252,744 +783,785 @@
             return bytes.buffer;
         }
 
-        /** Converts 16-bit PCM audio data to a WAV Blob. */
+        /**
+         * Converts signed 16-bit PCM audio data to a WAV file Blob.
+         * The API returns L16 audio data.
+         * @param {Int16Array} pcm16 Array of 16-bit PCM samples.
+         * @param {number} sampleRate The sample rate (e.g., 24000).
+         * @returns {Blob} A Blob object containing the WAV data.
+         */
         function pcmToWav(pcm16, sampleRate) {
             const numChannels = 1;
-            const bitsPerSample = 16;
-            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-            const blockAlign = numChannels * (bitsPerSample / 8);
-            const dataSize = pcm16.length * 2; // 2 bytes per 16-bit sample
-
-            const buffer = new ArrayBuffer(44 + dataSize);
+            const bytesPerSample = 2; // 16-bit
+            const blockAlign = numChannels * bytesPerSample;
+            
+            const buffer = new ArrayBuffer(44 + pcm16.byteLength);
             const view = new DataView(buffer);
 
-            let offset = 0;
+            // Helper function to write a string to a DataView
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+                }
 
-            // RIFF chunk
-            view.setUint32(offset, 0x52494646, false); offset += 4; // 'RIFF'
-            view.setUint32(offset, 36 + dataSize, true); offset += 4; // file size
-            view.setUint32(offset, 0x57415645, false); offset += 4; // 'WAVE'
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF'); // ChunkID
+            view.setUint32(4, 36 + pcm16.byteLength, true); // ChunkSize
+            writeString(view, 8, 'WAVE'); // Format
 
-            // FMT chunk
-            view.setUint32(offset, 0x666d7420, false); offset += 4; // 'fmt '
-            view.setUint32(offset, 16, true); offset += 4; // chunk size
-            view.setUint16(offset, 1, true); offset += 2; // compression code (1 = PCM)
-            view.setUint16(offset, numChannels, true); offset += 2; // channel count
-            view.setUint32(offset, sampleRate, true); offset += 4; // sample rate
-            view.setUint32(offset, byteRate, true); offset += 4; // byte rate
-            view.setUint16(offset, blockAlign, true); offset += 2; // block align
-            view.setUint16(offset, bitsPerSample, true); offset += 2; // bits per sample
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt '); // Subchunk1ID
+            view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+            view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+            view.setUint16(22, numChannels, true); // NumChannels
+            view.setUint32(24, sampleRate, true); // SampleRate
+            view.setUint32(28, sampleRate * blockAlign, true); // ByteRate
+            view.setUint16(32, blockAlign, true); // BlockAlign
+            view.setUint16(34, bytesPerSample * 8, true); // BitsPerSample (16)
 
-            // DATA chunk
-            view.setUint32(offset, 0x64617461, false); offset += 4; // 'data'
-            view.setUint32(offset, dataSize, true); offset += 4; // data size
+            // Data sub-chunk
+            writeString(view, 36, 'data'); // Subchunk2ID
+            view.setUint32(40, pcm16.byteLength, true); // Subchunk2Size
 
             // Write PCM data
+            let offset = 44;
             for (let i = 0; i < pcm16.length; i++) {
-                view.setInt16(offset, pcm16[i], true);
+                view.setInt16(offset, pcm16[i], true); // Write 16-bit signed integer
                 offset += 2;
             }
 
             return new Blob([view], { type: 'audio/wav' });
         }
-
-
-        // --- 5. CORE LLM API CALLS ---
         
-        // ** Feature 1: TTS Playback LLM Call **
-        async function callGeminiTtsApi(text, buttonElement) {
-            if (isAudioPlaying) {
-                if (audioPlayer) audioPlayer.pause();
-                isAudioPlaying = false;
-                buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a2 2 0 01-2-2V9a2 2 0 012-2h1.586l4.293-4.293A1 1 0 0112 3v18a1 1 0 01-1.121.951L5.586 15z"></path></svg> ${getStaticText('ttsListen')}`;
-                return;
-            }
+        /**
+         * Generic function to make the TTS API call and play the resulting audio.
+         * @param {string} text The text to be synthesized.
+         * @param {string} languageCode The BCP-47 language code (e.g., 'en-IN', 'hi-IN').
+         * @param {HTMLElement} buttonElement The button that triggered the playback.
+         */
+        async function readTextAloud(text, languageCode, buttonElement) {
+            if (!text || !languageCode) return;
 
-            buttonElement.disabled = true;
             const originalButtonContent = buttonElement.innerHTML;
-            buttonElement.innerHTML = `<span class="tts-spinner"></span> <span class="ml-2">${getStaticText('ttsLoading')}</span>`;
+            
+            // Disable button and show loading state
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 mr-1 animate-spin"></i> Generating...`;
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 
-            // Use the "Kore" voice for a firm, official tone appropriate for a college
-            const ttsPrompt = `Say: ${text}`;
             const payload = {
-                contents: [{ parts: [{ text: ttsPrompt }] }],
+                contents: [{ parts: [{ text: text }] }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
                     speechConfig: {
-                        voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: TTS_VOICE }
+                        },
+                        // Explicitly set language code for accent control
+                        languageCode: languageCode 
                     }
-                },
+                }
             };
 
+            let audio = null;
+            let audioUrl = null;
             try {
-                const response = await fetch(TTS_API_URL, {
+                const response = await fetchWithBackoff(TTS_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
-                if (!response.ok) throw new Error(`TTS API returned status ${response.status}`);
-
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
                 const audioData = part?.inlineData?.data;
                 const mimeType = part?.inlineData?.mimeType;
 
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    if (!sampleRateMatch) throw new Error("Could not find sample rate in MIME type.");
-                    const sampleRate = parseInt(sampleRateMatch[1], 10);
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
                     
                     const pcmData = base64ToArrayBuffer(audioData);
                     const pcm16 = new Int16Array(pcmData);
+                    
                     const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioUrl = URL.createObjectURL(wavBlob);
                     
-                    if (audioPlayer) {
-                         audioPlayer.pause();
-                         URL.revokeObjectURL(audioPlayer.src);
-                    }
-                    audioPlayer = new Audio(audioUrl);
+                    audio = new Audio(audioUrl);
                     
-                    audioPlayer.onplaying = () => {
-                        isAudioPlaying = true;
-                        buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12h-4M7 12H3m14 0l-3-3m3 3l-3 3M7 12l3-3m-3 3l3 3"></path></svg> Stop Audio`;
-                        buttonElement.disabled = false;
-                    };
+                    // Show Playing State
+                    buttonElement.innerHTML = `<i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Playing...`;
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
                     
-                    audioPlayer.onended = audioPlayer.onpause = () => {
-                        isAudioPlaying = false;
+                    audio.play();
+
+                    audio.onended = () => {
+                        // Reset button after playback: This is the desired 'stop and break' behavior.
                         buttonElement.innerHTML = originalButtonContent;
                         buttonElement.disabled = false;
+                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                        if (audioUrl) URL.revokeObjectURL(audioUrl); // Clean up
                     };
 
-                    await audioPlayer.play();
                 } else {
-                    throw new Error("Invalid or missing audio data in TTS response.");
+                    console.error("TTS Response missing audio data or invalid mimeType:", result);
+                    buttonElement.innerHTML = `<i data-lucide="volume-x" class="w-4 h-4 mr-1"></i> Failed`;
                 }
 
             } catch (error) {
-                console.error("TTS Playback Error:", error);
-                buttonElement.innerHTML = `<span class="text-red-500">${getStaticText('ttsError')}</span>`;
-                buttonElement.disabled = false;
-                setTimeout(() => {
-                     buttonElement.innerHTML = originalButtonContent;
-                }, 3000);
-            }
-        }
-        
-        // ** Advanced Intent Detection (LLM Call) **
-        async function callGeminiIntentApi(userQuery) {
-            const systemPrompt = `You are an extremely advanced AI Chatbot for Marathwada Mitramandal College of Engineering (MMCOE), Pune. Your purpose is to provide highly accurate, detailed, and formal information.
-
-                Your process for every query MUST be:
-                1.  **Intent Detection & Correction:** Analyze the user's input, even if it contains extreme misspellings (e.g., 'wadr is bas service'). Determine the precise, correct, and well-formed intended question.
-                2.  **MMCOE Expert Response:** Provide a single, detailed, formal, and polished response to the corrected question, drawing on your knowledge about MMCOE. Ensure the response is always polite and professional.
-
-                Your response MUST follow this exact formatting structure to assist the user in understanding the correction and the answer. Do NOT add any extra text or conversation outside this format:
-                **AI Detected Intended Query (Spelling Corrected):** [The corrected question]
-                **MMCOE Expert Response:** [Your detailed, formal, and polished answer]`;
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }], 
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-            };
-
-            const maxRetries = 3;
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    const response = await fetch(LLM_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) throw new Error(`API returned status ${response.status}`);
-
-                    const result = await response.json();
-                    const candidate = result.candidates?.[0];
-
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        return { answer: candidate.content.parts[0].text, score: 0.90, docId: null, key: null, isLLM: true };
-                    }
-                    throw new Error("Invalid response structure from API.");
-
-                } catch (error) {
-                    console.error(`Gemini API Attempt ${attempt + 1} failed:`, error);
-                    if (attempt < maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, getDelay(attempt)));
-                    } else {
-                        // Return a generic error on final failure
-                        return { answer: getStaticText('genericError'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'genericError', isLLM: false };
-                    }
+                console.error("TTS API call failed:", error);
+                buttonElement.innerHTML = `<i data-lucide="volume-x" class="w-4 h-4 mr-1"></i> API Error`;
+            } finally {
+                // Only reset if playback wasn't successfully started
+                if (audio === null || !audio.onended) { 
+                    setTimeout(() => {
+                        buttonElement.innerHTML = originalButtonContent;
+                        buttonElement.disabled = false;
+                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                    }, 2000);
                 }
             }
-        }
-
-
-        // --- 6. MAIN QUERY PROCESSOR ---
-        
-        function detectDerogatoryMessage(query) {
-            const cleanedQuery = query.toLowerCase().replace(/[^a-z0-9\s\u0900-\u097f]/g, ' '); 
-            const words = cleanedQuery.split(/\s+/).filter(word => word.length > 0);
-            
-            for (const word of words) {
-                if (DEROGATORY_KEYWORDS.has(word)) {
-                    console.warn(`Derogatory keyword detected: ${word}`);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        function checkPriorityKeywords(query) {
-            const lowerCaseQuery = query.toLowerCase();
-            const queryTokens = tokenize(lowerCaseQuery); // Tokenize once for token-level matching
-            let docId = null;
-
-            // Check if the query *contains* a keyword
-            if (PRIORITY_KEYWORDS.BUS.some(keyword => lowerCaseQuery.includes(keyword))) {
-                docId = "D007_BUS";
-            } 
-            else if (PRIORITY_KEYWORDS.HOSTEL.some(keyword => lowerCaseQuery.includes(keyword))) {
-                docId = "D006_HOSTEL";
-            } 
-            // Use token-level matching for courses to catch 'BE' or 'CS' better
-            else if (PRIORITY_KEYWORDS.COURSES.some(pk => queryTokens.some(qt => qt.includes(pk) || pk.includes(qt)))) {
-                docId = "D001_COURSES";
-            } 
-            else if (PRIORITY_KEYWORDS.PLACEMENTS.some(keyword => lowerCaseQuery.includes(keyword))) {
-                docId = "D004_PLACEMENTS";
-            }
-
-            if (docId) {
-                const answer = currentLanguage === 'en' ? KNOWLEDGE_BASE.get(docId) : MARATHI_KNOWLEDGE_BASE.get(docId);
-                return { answer: answer, score: 0.99, docId: docId, key: null, isLLM: false }; 
-            }
-            return null;
         }
         
         /**
-         * Main function to process user query, prioritizing local KB lookup (fast)
-         * before falling back to the LLM (slower but intelligent).
+         * Handles the multi-language TTS request, translating first if necessary.
          */
-        async function processQuery(query) {
-            if (detectDerogatoryMessage(query)) {
-                // Use a generic response to avoid processing offensive language
-                return { answer: getStaticText('derogatoryResponse'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'derogatoryResponse', isLLM: false };
-            }
+        async function handleMultiLanguageTTS(langCode, buttonElement) {
+            const messageId = buttonElement.getAttribute('data-message-id');
+            const translationContainer = document.getElementById(`translation-container-${messageId}`);
+            const rawText = translationContainer.dataset.originalText;
+            const targetLangConfig = LANG_CONFIG[langCode];
 
-            // 1. Check local Knowledge Base first (FAST responses)
-            const kbResult = checkPriorityKeywords(query);
-            if (kbResult) {
-                return kbResult;
-            }
-            
-            // 2. Fallback to Advanced Intent Detection (LLM Call, slower but smarter)
-            console.log("Falling back to Gemini LLM for complex intent detection...");
-            const llmResult = await callGeminiIntentApi(query);
+            if (!rawText || !targetLangConfig) return;
 
-            // 3. Check if LLM response is a generic error or a threshold miss
-            if (llmResult.key === 'genericError') {
-                return { answer: getStaticText('genericError'), score: 0.0, docId: "D008_GENERIC_ERROR", key: 'genericError', isLLM: false };
-            }
-            
-            // 4. Return the LLM's detailed response
-            return llmResult;
-        }
+            let textToSpeak = rawText;
+            const originalButtonContent = buttonElement.innerHTML;
 
-        
-        // --- 7. UI MANIPULATION FUNCTIONS (Updated to include TTS) ---
-        
-        function addMessage(sender, text, score = null, identifier = null, type = null, originalQuery = null) {
-            const chatWindow = document.getElementById('chat-window');
-            const isUser = sender === 'user';
-            
-            const messageContainer = document.createElement('div');
-            messageContainer.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} new chat-message`;
-
-            const messageBubble = document.createElement('div');
-            
-            messageBubble.className = `
-                max-w-xs md:max-w-md lg:max-w-lg p-3 my-2 shadow-lg transition-all duration-300 ease-in-out message-bubble-wrapper
-                ${isUser 
-                    ? 'bg-blue-600 text-white rounded-t-xl rounded-bl-xl ml-auto dark:bg-blue-700' 
-                    : 'bg-white text-gray-800 rounded-t-xl rounded-br-xl mr-auto border border-blue-200 dark:bg-gray-900 dark:text-gray-100 dark:border-blue-800'
-                }
-            `;
-            
-            let content = `<div class="font-bold mb-1 ${isUser ? 'text-white' : 'text-blue-700 dark:text-blue-400'}">${isUser ? getStaticText('user') : getStaticText('bot')}</div>`;
-            
-            // Handle LLM formatted content (Corrected Query + Response)
-            let displayContent = text;
-            if (!isUser && type === 'llm') {
-                displayContent = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-            } else {
-                displayContent = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            }
-
-            content += `<p class="whitespace-pre-wrap">${displayContent}</p>`;
-
-            if (score !== null && !isUser) {
-                const scoreText = score > 0.0 ? score.toFixed(4) : "0.0000";
-                content += `<p class="mt-2 text-xs opacity-80 italic ${score > 0.15 ? 'text-blue-900 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}">${getStaticText('confidence')} ${scoreText}</p>`;
-            }
-            
-            messageBubble.innerHTML = content;
-
-            // --- TTS Button (Feature 1) ---
-            // Only add listen button for bot responses (not for error messages or user messages)
-            if (!isUser && score !== 0.0) { 
-                const ttsButton = document.createElement('button');
-                ttsButton.className = 'mt-3 flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors duration-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500';
-                ttsButton.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a2 2 0 01-2-2V9a2 2 0 012-2h1.586l4.293-4.293A1 1 0 0112 3v18a1 1 0 01-1.121.951L5.586 15z"></path></svg> ${getStaticText('ttsListen')}`;
+            // Step 1: Translate if not English
+            if (langCode !== 'en') {
+                buttonElement.disabled = true; // Disable during translation phase
+                buttonElement.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 mr-1 animate-spin"></i> Translating...`;
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
                 
-                ttsButton.onclick = function() {
-                    // Extract the main response text for TTS
-                    let ttsText = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
-                    ttsText = ttsText.replace(/\<br\>/g, ' '); // Remove <br> from LLM response
-                    ttsText = ttsText.replace(/<\/?strong>/g, ''); // Remove strong tags
-                    callGeminiTtsApi(ttsText, ttsButton);
-                };
-                
-                messageBubble.appendChild(ttsButton);
-            }
-            // End TTS Button
+                const translationQuery = `Translate the following into ${targetLangConfig.label}:\n\n${rawText}`;
 
-            // --- Translation Feature (Retained) ---
-            if (!isUser && identifier && type === 'kb') {
-                const targetLangCode = currentLanguage === 'en' ? 'mr' : 'en';
-                const currentLangLabel = currentLanguage === 'en' ? 'मराठी' : 'English';
-
-                const translationLink = document.createElement('button');
-                translationLink.className = 'mt-2 text-xs font-semibold underline opacity-70 hover:opacity-100 transition-opacity duration-200 focus:outline-none block w-fit text-blue-800 dark:text-blue-300';
-                translationLink.textContent = `Translate to ${currentLangLabel}`;
-
-                const translationContainer = document.createElement('div');
-                translationContainer.className = 'translation-text mt-1 p-2 text-sm italic bg-blue-100 dark:bg-gray-800 rounded-lg hidden border-l-4 border-blue-400';
-
-                translationLink.onclick = function() {
-                    const isCurrentlyVisible = !translationContainer.classList.contains('hidden');
-                    
-                    if (isCurrentlyVisible) {
-                        translationContainer.classList.add('hidden');
-                        translationLink.textContent = `Translate to ${currentLangLabel}`;
-                    } else {
-                        let translatedText = currentLanguage === 'en' ? MARATHI_KNOWLEDGE_BASE.get(identifier) : KNOWLEDGE_BASE.get(identifier);
-                        translationContainer.innerHTML = translatedText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-                        translationContainer.classList.remove('hidden');
-                        translationLink.textContent = `Hide Translation (${currentLanguage === 'en' ? 'English' : 'Marathi'})`;
+                const translationPayload = {
+                    contents: [{ parts: [{ text: translationQuery }] }],
+                    systemInstruction: { parts: [{ text: TRANSLATION_SYSTEM_PROMPT }] },
+                    generationConfig: {
+                        language: langCode // Hint for the model
                     }
                 };
 
-                messageBubble.appendChild(translationLink);
-                messageBubble.appendChild(translationContainer);
-            }
-            // End Translation Feature
+                try {
+                    const response = await fetchWithBackoff(CHAT_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(translationPayload)
+                    });
 
-            messageContainer.appendChild(messageBubble);
-            chatWindow.appendChild(messageContainer);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+                    const result = await response.json();
+                    const translatedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                    
+                    if (translatedText) {
+                        textToSpeak = translatedText;
+                    } else {
+                        // Translation failed, revert button and exit
+                        buttonElement.innerHTML = originalButtonContent;
+                        buttonElement.disabled = false;
+                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                        return; 
+                    }
+
+                } catch (error) {
+                    console.error("Translation for TTS failed:", error);
+                    buttonElement.innerHTML = originalButtonContent;
+                    buttonElement.disabled = false; // Re-enable on failure
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                    return; 
+                }
+            }
+            
+            // Step 2: Perform TTS (Button remains disabled until audio.onended in readTextAloud)
+            await readTextAloud(textToSpeak, targetLangConfig.code, buttonElement);
         }
 
-        async function handleInput(query, isVoice = false, originalAudioQuery = null) {
-            if (!query || query.trim().length === 0) {
-                addMessage('bot', getStaticText('emptyQuery'));
+        /**
+         * Applies the saved theme preference on page load.
+         */
+        function applyTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const body = document.body;
+            const themeIcon = themeToggleButton.querySelector('i');
+
+            if (currentTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode'); 
+                themeIcon.setAttribute('data-lucide', 'moon');
+            }
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        /**
+         * Toggles the theme between light and dark mode and saves preference.
+         */
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark-mode');
+            
+            const newTheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+            
+            const themeIcon = themeToggleButton.querySelector('i');
+            themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        
+        /**
+         * Utility function to implement exponential backoff for API calls.
+         */
+        async function fetchWithBackoff(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429 || response.status >= 500) {
+                        throw new Error(`Server error or rate limit: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Max retries reached. Failing request.", error);
+                        throw error;
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    // console.warn(`Retrying request attempt ${i + 1}/${maxRetries} in ${delay.toFixed(0)}ms...`); // Suppress logging
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        // --- NEW HELPER FUNCTION FOR INITIAL MESSAGE ---
+        /**
+         * Helper function for the initial static message buttons to correctly pass context (the button element).
+         * This replaces the fragile translateInitialText() function.
+         */
+        function handleInitialTranslation(buttonElement, targetLanguage, messageId) {
+            const translationContainer = document.getElementById(`translation-container-${messageId}`);
+            const originalText = translationContainer.dataset.originalText;
+            
+            if (originalText) {
+                // Call the main translation function, passing the button element
+                translateText(buttonElement, targetLanguage, originalText, messageId);
+            }
+        }
+        // --- END NEW HELPER FUNCTION ---
+
+        /**
+         * Hides the translation box and restores the translate buttons to their original state.
+         * Note: The restoration logic is now inside this function to safely re-render the buttons.
+         */
+        function hideTranslation(messageId) {
+            const translationContainer = document.getElementById(`translation-container-${messageId}`);
+            const translateButtons = document.getElementById(`translate-buttons-${messageId}`);
+            const originalText = translationContainer.dataset.originalText;
+            
+            // 1. Clear the output box
+            if (translationContainer) translationContainer.innerHTML = '';
+            
+            // 2. Restore the buttons to their initial state (re-rendering innerHTML is the safest reset)
+            if (translateButtons && originalText) {
+                const safeOriginalText = originalText.replace(/`/g, '\\`').replace(/'/g, "\\'");
+                
+                // Determine the correct function handler for the restored buttons
+                let mrHandler, hiHandler;
+                if (messageId === 'msg-initial') {
+                    // Static initial message uses the helper handler
+                    mrHandler = `handleInitialTranslation(this, 'mr', '${messageId}')`;
+                    hiHandler = `handleInitialTranslation(this, 'hi', '${messageId}')`;
+                } else {
+                    // Dynamic chat messages use the main translation function
+                    mrHandler = `translateText(this, 'mr', \`${safeOriginalText}\`, '${messageId}')`;
+                    hiHandler = `translateText(this, 'hi', \`${safeOriginalText}\`, '${messageId}')`;
+                }
+
+                translateButtons.innerHTML = `
+                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="mr" onclick="${mrHandler}">Translate to Marathi 🇮🇳</button>
+                    <span class="text-white/50 mx-1">|</span>
+                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="hi" onclick="${hiHandler}">Translate to Hindi 🇮🇳</button>
+                `;
+            }
+        }
+
+        /**
+         * Uses a dedicated AI call to translate the text for VISUAL display.
+         * FIX: Now accepts the buttonElement directly for robust state management.
+         */
+        async function translateText(buttonElement, targetLanguage, originalText, messageId) {
+            const translationContainer = document.getElementById(`translation-container-${messageId}`);
+            const translateButtons = document.getElementById(`translate-buttons-${messageId}`);
+            
+            const originalButtonContent = buttonElement.innerHTML;
+            const loadingText = targetLanguage === 'hi' ? 'Translating to Hindi...' : 'Translating to Marathi...';
+            
+            // Clear any existing translation first
+            translationContainer.innerHTML = '';
+            
+            // Disable button and show loading state
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 mr-1 animate-spin"></i> ${loadingText}`;
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+
+            const targetLangConfig = LANG_CONFIG[targetLanguage];
+            const targetLangName = targetLangConfig.label;
+            
+            const translationQuery = `Translate the following into ${targetLangName}:\n\n${originalText}`;
+
+            const translationPayload = {
+                contents: [{ parts: [{ text: translationQuery }] }],
+                    systemInstruction: { parts: [{ text: TRANSLATION_SYSTEM_PROMPT }] },
+                generationConfig: {
+                    language: targetLanguage
+                }
+            };
+
+            try {
+                const response = await fetchWithBackoff(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(translationPayload)
+                });
+
+                const result = await response.json();
+                const translatedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+                if (translatedText) {
+                    translationContainer.innerHTML = `
+                        <div class="mt-3 p-3 bg-white/10 rounded-lg translation-content">
+                            <p class="font-bold text-sm mb-1">${targetLangName} Translation:</p>
+                            <div class="text-sm">
+                                ${DOMPurify.sanitize(marked.parse(translatedText))}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Restore the *other* button immediately to be clickable
+                    const otherLang = targetLanguage === 'hi' ? 'mr' : 'hi';
+                    const otherButton = translateButtons.querySelector(`[data-lang="${otherLang}"]`);
+                    if (otherButton) {
+                        // Re-trigger hideTranslation to restore the button set, then re-locate the clicked button
+                        hideTranslation(messageId); 
+                        // Now the buttons are restored, find the clicked language button again
+                        const clickedButtonToModify = translateButtons.querySelector(`[data-lang="${targetLanguage}"]`);
+                        
+                        // Update the clicked button (which is now restored) to the hide state
+                        if (clickedButtonToModify) {
+                            clickedButtonToModify.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4 mr-1"></i> Hide Translation`;
+                            clickedButtonToModify.onclick = () => hideTranslation(messageId);
+                            clickedButtonToModify.disabled = false;
+                            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                        }
+                    } else {
+                         // Case for only one button being present (shouldn't happen here) or initial message flow
+                        buttonElement.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4 mr-1"></i> Hide Translation`;
+                        buttonElement.onclick = () => hideTranslation(messageId);
+                        buttonElement.disabled = false;
+                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                    }
+
+
+                } else {
+                    translationContainer.innerHTML = `<p class="text-sm text-red-200">Translation failed. Please try again.</p>`;
+                    buttonElement.innerHTML = originalButtonContent;
+                    buttonElement.disabled = false; 
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                }
+            } catch (error) {
+                console.error("Translation API call failed:", error);
+                translationContainer.innerHTML = `<p class="text-sm text-red-200">Network Error: Could not reach translation service.</p>`;
+                buttonElement.innerHTML = originalButtonContent;
+                buttonElement.disabled = false; 
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            }
+        }
+
+
+        /**
+         * Creates and appends a message bubble to the chat box.
+         */
+        function displayMessage(content, sender, sources = [], isSimulation = false, messageId = null, rawText = null) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `${sender === 'user' ? 'user-message' : 'bot-message'} p-4 max-w-sm md:max-w-md shadow-lg transition duration-300 ease-out transform translate-y-4 opacity-0`;
+            
+            if (sender === 'bot' && !isSimulation) {
+                messageBubble.innerHTML = DOMPurify.sanitize(marked.parse(content));
+
+                // Add sources if available
+                if (sources.length > 0) {
+                    const sourcesDiv = document.createElement('div');
+                    sourcesDiv.className = 'mt-3 pt-2 border-t border-white/30 text-xs flex flex-wrap gap-2';
+                    sourcesDiv.innerHTML = `<p class="font-bold w-full mb-1 text-xs opacity-80">Sources (Live Data):</p>`;
+                    
+                    sources.forEach((source) => {
+                        const sourceTitle = source.title || source.uri.split('/')[2];
+                        sourcesDiv.innerHTML += `<a href="${source.uri}" target="_blank" class="source-tag">
+                                <i data-lucide="link" class="w-3 h-3 mr-1"></i>
+                                <span>${sourceTitle}</span>
+                            </a>`;
+                    });
+                    
+                    messageBubble.appendChild(sourcesDiv);
+                }
+                
+                // --- TTS and Translation Area ---
+                if (rawText) {
+                    const utilityArea = document.createElement('div');
+                    utilityArea.className = 'mt-3 pt-2 border-t border-white/30 space-y-2';
+                    
+                    const safeRawText = rawText.replace(/`/g, '\\`').replace(/'/g, "\\'"); 
+
+                    // 1. TTS Buttons
+                    const ttsButtonsDiv = document.createElement('div');
+                    ttsButtonsDiv.id = `tts-buttons-${messageId}`;
+                    ttsButtonsDiv.className = 'flex flex-wrap gap-2 justify-start text-xs font-medium';
+                    ttsButtonsDiv.innerHTML = `
+                        <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="${messageId}" onclick="handleMultiLanguageTTS('en', this)">
+                            <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (EN)
+                        </button>
+                        <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="${messageId}" onclick="handleMultiLanguageTTS('hi', this)">
+                            <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (HI)
+                        </button>
+                        <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="${messageId}" onclick="handleMultiLanguageTTS('mr', this)">
+                            <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (MR)
+                        </button>
+                    `;
+                    utilityArea.appendChild(ttsButtonsDiv);
+
+
+                    // 2. Translation Buttons
+                    const buttonsDiv = document.createElement('div');
+                    buttonsDiv.id = `translate-buttons-${messageId}`;
+                    buttonsDiv.className = 'flex justify-end text-right space-x-2 text-xs font-medium';
+                    // FIX: Buttons now pass 'this' for robust function execution.
+                    buttonsDiv.innerHTML = `
+                        <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="mr" onclick="translateText(this, 'mr', \`${safeRawText}\`, '${messageId}')">Translate to Marathi 🇮🇳</button>
+                        <span class="text-white/50 mx-1">|</span>
+                        <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="hi" onclick="translateText(this, 'hi', \`${safeRawText}\`, '${messageId}')">Translate to Hindi 🇮🇳</button>
+                    `;
+                    utilityArea.appendChild(buttonsDiv);
+                    
+                    // 3. Translation Output Container
+                    const containerDiv = document.createElement('div');
+                    containerDiv.id = `translation-container-${messageId}`;
+                    containerDiv.dataset.originalText = safeRawText; 
+                    utilityArea.appendChild(containerDiv);
+                    
+                    messageBubble.appendChild(utilityArea);
+                }
+            } else {
+                messageBubble.textContent = content;
+            }
+
+            chatBox.appendChild(messageWrapper);
+            messageWrapper.appendChild(messageBubble);
+
+            // Animate message in and re-render lucide icons
+            setTimeout(() => {
+                messageBubble.classList.remove('translate-y-4', 'opacity-0');
+                messageBubble.classList.add('translate-y-0', 'opacity-100');
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                
+                // --- FIX APPLIED HERE: Force scroll for USER messages, conditional scroll for BOT messages ---
+                if (sender === 'user') {
+                    // Force scroll to the bottom when the user submits a message.
+                    chatBox.scrollTop = chatBox.scrollHeight; 
+                } else {
+                    // Use conditional scroll for bot messages to prevent scroll-hijacking while reading.
+                    scrollChatIfNearBottom(); 
+                }
+                // --- END FIX ---
+            }, 10);
+        }
+
+        /**
+         * Toggles the loading/typing indicator for the bot.
+         */
+        function toggleLoading(show) {
+            let loadingElement = document.getElementById('loading-indicator');
+
+            if (show) {
+                sendButton.disabled = true;
+                userInput.disabled = true;
+                micButton.disabled = true;
+                
+                if (!loadingElement) {
+                    loadingElement = document.createElement('div');
+                    loadingElement.id = 'loading-indicator';
+                    loadingElement.className = 'flex justify-start';
+                    loadingElement.innerHTML = `
+                        <div class="bot-message typing-indicator p-4 max-w-sm md:max-w-md shadow-lg transition duration-300">
+                            <span class="mr-1 inline-block w-2 h-2 rounded-full bg-white animate-pulse" style="animation-delay: 0s;"></span>
+                            <span class="mr-1 inline-block w-2 h-2 rounded-full bg-white animate-pulse" style="animation-delay: 0.2s;"></span>
+                            <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse" style="animation-delay: 0.4s;"></span>
+                            <span class="ml-2">MMCOE Vector is processing your request...</span>
+                        </div>
+                    `;
+                    chatBox.appendChild(loadingElement);
+                    // FIX APPLIED HERE: Use conditional scroll instead of forcing scroll
+                    scrollChatIfNearBottom();
+                }
+            } else {
+                sendButton.disabled = false;
+                userInput.disabled = false;
+                micButton.disabled = false;
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+            }
+        }
+        
+        /**
+         * Uses a dedicated AI call to check for inappropriate language.
+         */
+        async function moderateContent(query) {
+            const moderationPayload = {
+                contents: [{ parts: [{ text: query }] }],
+                systemInstruction: { parts: [{ text: MODERATION_SYSTEM_PROMPT }] },
+            };
+
+            try {
+                const response = await fetchWithBackoff(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(moderationPayload)
+                });
+
+                const result = await response.json();
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+                if (responseText && responseText.toUpperCase() !== 'CLEAN') {
+                    return responseText; 
+                }
+                return true; // Safe to proceed
+            } catch (error) {
+                console.error("Moderation API call failed:", error);
+                return true; 
+            }
+        }
+        
+        // --- STT (Speech-to-Text) Implementation ---
+        
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                console.warn('Speech Recognition not supported in this browser. Feature disabled.');
+                micButton.style.display = 'none';
                 return;
             }
-            
-            // If audio is playing, stop it
-            if (isAudioPlaying && audioPlayer) {
-                audioPlayer.pause();
-                isAudioPlaying = false;
-            }
-            
-            // 1. Add user message
-            if (isVoice) {
-                addMessage('user', query, null, null, null, originalAudioQuery); 
-            } else {
-                addMessage('user', query);
-                document.getElementById('user-input').value = '';
-            }
 
-            // 2. Disable input and show typing indicator
-            const inputField = document.getElementById('user-input');
-            inputField.disabled = true;
-            document.getElementById('send-button').disabled = true;
-            document.getElementById('mic-button').disabled = true;
-            const typingIndicatorId = addTypingIndicator();
+            speechRecognitionInstance = new SpeechRecognition();
+            speechRecognitionInstance.continuous = false;
+            speechRecognitionInstance.interimResults = false;
+            speechRecognitionInstance.lang = 'en-IN'; // Set language for Indian English recognition
 
-            // 3. Process the query (Awaiting LLM response)
-            // This is the call that routes to the fast KB or the slower LLM
-            const result = await processQuery(query);
+            speechRecognitionInstance.onstart = () => {
+                micButton.classList.add('mic-listening');
+                micButton.innerHTML = '<i data-lucide="mic" class="w-6 h-6"></i>'; // Change icon to a simple mic
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                userInput.placeholder = "Listening... Speak now...";
+            };
 
-            // 4. Remove typing indicator and display response
-            removeTypingIndicator(typingIndicatorId);
-            
-            const identifier = result.docId || result.key;
-            const type = result.isLLM ? 'llm' : 'kb'; 
+            speechRecognitionInstance.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript.trim();
+                sendMessage(); // Automatically send the message after successful transcription
+            };
 
-            addMessage('bot', result.answer, result.score, identifier, type);
-            
-            inputField.disabled = false;
-            document.getElementById('send-button').disabled = false;
-            document.getElementById('mic-button').disabled = false;
-            inputField.focus();
-        }
-
-        // Handles form submission for text
-        function handleUserInput(event) {
-            if (event && event.preventDefault) event.preventDefault();
-            const inputField = document.getElementById('user-input');
-            const query = inputField.value.trim();
-            handleInput(query);
-        }
-        
-        function addTypingIndicator() {
-            const chatWindow = document.getElementById('chat-window');
-            const indicatorId = 'typing-indicator-' + Date.now();
-            const indicator = document.createElement('div');
-            indicator.id = indicatorId;
-            indicator.className = 'flex justify-start new p-3 my-2';
-            indicator.innerHTML = `
-                <div class="bg-white text-gray-800 rounded-full p-2 text-sm italic border border-blue-200 dark:bg-gray-900 dark:text-gray-100 dark:border-blue-800 flex items-center space-x-2">
-                    <span class="text-xs">${getStaticText('typing')}</span>
-                    <div class="loading-dots">
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                    </div>
-                </div>
-            `;
-            chatWindow.appendChild(indicator);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            return indicatorId;
-        }
-
-        function removeTypingIndicator(id) {
-            const indicator = document.getElementById(id);
-            if (indicator) {
-                indicator.remove();
-            }
-        }
-        
-        // --- 8. VOICE RECORDING LOGIC (SIMULATED ASR) ---
-
-        const SIMULATED_QUERIES_EN = [
-            "wadr is bas service for me", 
-            "tell me about the be courses you offer", 
-            "Is there a place to liv on campis", 
-            "how to get a job at mmcoe after grajuashun", 
-            "wat is the NAAC grade", 
-            "hwo do i get admission" 
-        ];
-
-        const SIMULATED_QUERIES_MR = [
-            "बस सेवासोयीबद्दल माहिती द्या",
-            "तुमचे इंजीनीरिंग विषय कोणते आहेत?",
-            "रहायची सोय उपलब्ध आहे का?",
-            "पॅकेज किती पर्यंत मिळतो?",
-            "NAAC ग्रेड काय आहे?",
-            "प्रवेश कसा मिळवायचा"
-        ];
-        
-        function getSimulatedQuery() {
-            const queries = currentLanguage === 'en' ? SIMULATED_QUERIES_EN : SIMULATED_QUERIES_MR;
-            const randomIndex = Math.floor(Math.random() * queries.length);
-            return queries[randomIndex];
-        }
-
-
-        function toggleRecording() {
-            const micButton = document.getElementById('mic-button');
-            const inputField = document.getElementById('user-input');
-            
-            if (isRecording) {
-                // STOP RECORDING
-                micButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'recording-pulse');
-                micButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                micButton.disabled = true;
-                isRecording = false;
-                mediaRecorder.stop();
-                
-                // Show transcription status
-                inputField.placeholder = getStaticText('audioTranscribing');
-                inputField.disabled = true;
-
-            } else {
-                // START RECORDING
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        audioChunks = [];
-                        mediaRecorder = new MediaRecorder(stream);
-
-                        mediaRecorder.ondataavailable = event => {
-                            audioChunks.push(event.data);
-                        };
-
-                        mediaRecorder.onstop = () => {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                            stream.getTracks().forEach(track => track.stop()); 
-
-                            if (audioBlob.size < 5000) { 
-                                inputField.placeholder = getStaticText('placeholder');
-                                inputField.disabled = false;
-                                micButton.disabled = false;
-                                addMessage('bot', 'The voice input was too short. Please try speaking for at least 2 seconds. 🎤');
-                                return;
-                            }
-                            
-                            setTimeout(async () => {
-                                const transcribedQuery = getSimulatedQuery();
-                                const submittedText = getStaticText('audioSubmitted') + transcribedQuery;
-                                
-                                await handleInput(transcribedQuery, true, submittedText);
-                                
-                                inputField.placeholder = getStaticText('placeholder');
-                                inputField.disabled = false;
-                                micButton.disabled = false;
-                            }, 1500 + Math.random() * 500); 
-                        };
-
-                        mediaRecorder.start();
-                        isRecording = true;
-                        micButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                        micButton.classList.add('bg-red-600', 'hover:bg-red-700', 'recording-pulse');
-                        inputField.placeholder = "🔴 Recording... Click to Stop";
-                        inputField.disabled = true;
-                    })
-                    .catch(err => {
-                        console.error('Microphone access error:', err);
-                        addMessage('bot', getStaticText('audioFailure'));
-                        inputField.disabled = false;
-                        micButton.disabled = false;
-                        inputField.placeholder = getStaticText('placeholder');
-                    });
-            }
-        }
-        
-        // --- 9. THEME AND LANGUAGE MANAGEMENT ---
-        
-        const htmlElement = document.documentElement;
-
-        function updateUIText() {
-            const lang = currentLanguage;
-            document.getElementById('user-input').placeholder = getStaticText('placeholder');
-            
-            const langButton = document.getElementById('lang-switch-button');
-            langButton.textContent = STATIC_TEXT[lang]['langSwitch'];
-            langButton.title = STATIC_TEXT[lang]['langSwitchTitle'];
-
-            document.getElementById('theme-toggle').title = STATIC_TEXT[lang]['themeToggleTitle'];
-
-            // Update welcome panel text
-            document.getElementById('welcome-panel-text').innerHTML = (lang === 'en' ? WELCOME_PANEL_TEXT : MARATHI_WELCOME_PANEL_TEXT).replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        }
-
-        function toggleLanguage() {
-            currentLanguage = currentLanguage === 'en' ? 'mr' : 'en';
-            updateUIText();
-            
-            document.getElementById('chat-window').innerHTML = '';
-            addMessage('bot', getStaticText('welcome'), null, 'welcome', 'static');
-        }
-
-        function applyTheme(isDark) {
-            if (isDark) {
-                htmlElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                document.getElementById('theme-toggle-icon').innerHTML = '&#9728;'; // Sun icon ☀️
-            } else {
-                htmlElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                document.getElementById('theme-toggle-icon').innerHTML = '&#9790;'; // Moon icon 🌙
-            }
-        }
-
-        function setupThemeAndLanguage() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                applyTheme(true);
-            } else {
-                applyTheme(false);
-            }
-
-            document.getElementById('theme-toggle').addEventListener('click', () => {
-                applyTheme(!htmlElement.classList.contains('dark'));
-            });
-
-            document.getElementById('lang-switch-button').addEventListener('click', toggleLanguage);
-            document.getElementById('mic-button').addEventListener('click', toggleRecording);
-            
-            updateUIText();
-        }
-        
-        // --- 10. ADVANCED WELCOME ANIMATION ---
-        function showWelcomeAnimation() {
-            const splashScreen = document.getElementById('splash-screen');
-            
-            setTimeout(() => {
-                splashScreen.classList.add('splash-fade-out');
-                
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 1500); 
-
-            }, 4500); 
-
-            setTimeout(() => {
-                addMessage('bot', getStaticText('welcome'), null, 'welcome', 'static'); 
-                document.getElementById('user-input').focus();
-            }, 6500); 
-        }
-
-
-        // --- 11. INITIALIZATION (Entry Point) ---
-
-        window.onload = function() {
-            initializeKnowledgeBase();
-            setupThemeAndLanguage();
-            
-            showWelcomeAnimation();
-
-            document.getElementById('chat-form').addEventListener('submit', handleUserInput);
-            document.getElementById('user-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    handleUserInput(e);
+            speechRecognitionInstance.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                let message = `Voice input error: ${event.error}.`;
+                if (event.error === 'not-allowed') {
+                    // *** FIX APPLIED HERE: Added context for security/iframe issue ***
+                    message = "Microphone access has been explicitly blocked or is restricted by the browser's **security policy** (often in embedded previews like this one). Please try reloading the page, or ensure the document is running in a secure (HTTPS) environment. 🚫";
+                } else if (event.error === 'no-speech') {
+                    message = "No speech detected. Please speak louder and clearer.";
+                } else if (event.error === 'network') {
+                    message = "A network error occurred during speech processing. Check your connection. 🌐";
                 }
+                displayMessage(message, 'bot', [], false, `err-${Date.now()}`, message);
+            };
+
+            speechRecognitionInstance.onend = () => {
+                micButton.classList.remove('mic-listening');
+                micButton.innerHTML = '<i data-lucide="mic-2" class="w-6 h-6"></i>';
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                userInput.placeholder = "Ask about MMCOE... or speak to me via the mic";
+            };
+        }
+
+        function toggleSpeechRecognition() {
+            if (!speechRecognitionInstance) return;
+
+            try {
+                // If recognition is already active, stop it
+                if (micButton.classList.contains('mic-listening')) {
+                    speechRecognitionInstance.stop();
+                } else {
+                    // Start recognition
+                    speechRecognitionInstance.start();
+                }
+            } catch (e) {
+                if (e.name === 'InvalidStateError') {
+                    // This error occurs if start() is called while recognition is already starting/active
+                    console.warn("Recognition already active or starting.");
+                } else {
+                    console.error("Error toggling speech recognition:", e);
+                }
+            }
+        }
+        // --- END STT Implementation ---
+
+        /**
+         * Main function to send the user message and fetch the bot response directly from the Gemini API.
+         */
+        async function sendMessage() {
+            const query = userInput.value.trim();
+            if (!query) return;
+
+            // 1. Display user message and clear input
+            displayMessage(query, 'user');
+            userInput.value = '';
+
+            // 2. Show loading indicator
+            toggleLoading(true);
+
+            // --- STEP 2.1: Content Moderation Check ---
+            const moderationResult = await moderateContent(query);
+            if (typeof moderationResult === 'string') {
+                toggleLoading(false); 
+                const modMessageId = `mod-${Date.now()}`;
+                displayMessage(moderationResult, 'bot', [], false, modMessageId, moderationResult);
+                userInput.focus();
+                return; 
+            }
+            // --- END MODERATION CHECK ---
+            
+            const messageId = `msg-${Date.now()}`;
+            let rawBotText = ""; 
+
+            // --- STEP 3: Proceed with RAG (Search Grounding) Query ---
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: query }] }],
+                    tools: [{ "google_search": {} }], 
+                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                };
+
+                const response = await fetchWithBackoff(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                const candidate = result.candidates?.[0];
+                let botText = "I apologize, an unknown error occurred when processing the AI response. Please try a different query. 😔";
+                let sources = [];
+                
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    rawBotText = candidate.content.parts[0].text;
+                    botText = rawBotText;
+                    
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attribution => ({
+                                uri: attribution.web?.uri,
+                                title: attribution.web?.title,
+                            }))
+                            .filter(source => source.uri && source.title); 
+                    }
+                } else if (result.error) {
+                    botText = `MMCOE API Error: **${result.error.message}** Please check your network connection.`;
+                }
+
+                // 4. Display bot response, passing the raw text and ID for TTS and translation
+                displayMessage(botText, 'bot', sources, false, messageId, rawBotText);
+                
+            } catch (error) {
+                console.error("MMCOE API Request Failed:", error);
+                displayMessage("Network Error: Failed to connect to the Google service for RAG. Please check your internet connection. 🌐", 'bot');
+            } finally {
+                // 5. Hide loading indicator
+                toggleLoading(false);
+                userInput.focus();
+            }
+        }
+
+        /**
+         * Handles clicks on the quick reply buttons.
+         */
+        function quickReply(text) {
+            userInput.value = text;
+            sendMessage();
+        }
+        
+        // Load external libraries (Markdown and HTML Sanitization)
+        function loadScripts(urls, callback) {
+            let loadedCount = 0;
+            const totalCount = urls.length;
+
+            if (totalCount === 0) {
+                callback();
+                return;
+            }
+
+            urls.forEach(url => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === totalCount) {
+                        callback();
+                    }
+                };
+                script.onerror = () => {
+                    console.error(`Failed to load script: ${url}`);
+                    loadedCount++; 
+                    if (loadedCount === totalCount) {
+                        callback();
+                    }
+                };
+                document.head.appendChild(script);
             });
+        }
+
+        // Initialize on window load
+        window.onload = function() {
+            // Start the decompilation sequence first
+            setupIntroAnimation();
         };
 
+        // Allow sending message by pressing Enter in the input box
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !sendButton.disabled) {
+                event.preventDefault(); 
+                sendMessage();
+            }
+        });
+
     </script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center font-sans relative overflow-hidden p-4">
-    
-    <!-- SPLASH SCREEN OVERLAY -->
-    <div id="splash-screen" class="absolute inset-0 bg-blue-800 dark:bg-blue-950 flex flex-col items-center justify-center z-50 transition-all duration-500">
-        <div class="cube-wrapper">
-            <div class="cube-face front"><span class="text-base font-extrabold tracking-widest">MMCOE VECTOR</span></div>
-        </div>
-        <p class="text-xl mt-[200px] font-semibold tracking-wide text-white opacity-90 z-50">
-            <span class="animate-pulse">Initializing Advanced AI Tools...</span>
-        </p>
-    </div>
-    
-    <!-- Main Desktop Content Wrapper - h-full ensures responsiveness -->
-    <div id="desktop-layout-wrapper" class="w-full max-w-6xl h-full grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 main-content-slide-in">
-        
-        <!-- 1. CHAT INTERFACE (2/3 width) -->
-        <div id="main-content" class="md:col-span-2 flex flex-col bg-white dark:bg-gray-800 polished-card-shadow rounded-2xl overflow-hidden h-full">
-            
-            <!-- Chat Header -->
-            <header class="p-4 bg-blue-700 text-white shadow-lg flex items-center justify-between rounded-t-2xl dark:bg-blue-900">
-                <h1 class="text-xl font-extrabold flex items-center">
-                    <img 
-                        src="https://placehold.co/40x40/0A58A3/FFFFFF?text=MMCOE" 
-                        alt="MMCOE Logo" 
-                        class="w-8 h-8 mr-3 rounded-lg shadow-md" 
-                        onerror="this.onerror=null;this.src='https://placehold.co/40x40/0A58A3/FFFFFF?text=MMCOE';"
-                    >
-                    <div class="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-300 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0 0 6h0a3 3 0 0 0 0-6Z"/><path d="M19 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2Z"/><path d="M12 18V6"/></svg>
-                        <span>MMCOE Vector Chatbot</span>
-                    </div>
-                </h1>
-                
-                <div class="flex items-center gap-3">
-                    <button
-                        id="lang-switch-button"
-                        class="p-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 text-sm font-bold leading-none px-3"
-                        title="मराठी भाषेत बदला"
-                    >
-                        मराठी
-                    </button>
-
-                    <button
-                        id="theme-toggle"
-                        aria-label="Toggle dark mode"
-                        class="p-2 rounded-full text-white hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors duration-200 text-xl font-bold leading-none"
-                        title="Toggle Dark/Light Mode"
-                    >
-                        <span id="theme-toggle-icon" class="block">&#9790;</span>
-                    </button>
-                </div>
-            </header>
-
-            <!-- Chat Window - flex-grow ensures it takes all available height -->
-            <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto bg-blue-50 dark:bg-gray-950">
-                <!-- Messages will be added here by JavaScript -->
-            </div>
-
-            <!-- Input Bar -->
-            <footer class="p-4 bg-gray-200 border-t border-gray-300 dark:bg-gray-700 dark:border-gray-600">
-                <form id="chat-form" class="flex gap-3">
-                    <!-- Text Input Bar -->
-                    <input 
-                        type="text"
-                        id="user-input"
-                        placeholder="Ask a question about MMCOE..."
-                        autocomplete="off"
-                        class="flex-grow p-3 border border-blue-400 rounded-full focus:ring-4 focus:ring-blue-300 focus:border-blue-500 shadow-inner text-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:border-blue-600 dark:focus:ring-blue-500 transition-all duration-300"
-                    />
-                    
-                    <!-- Voice Input Button -->
-                    <button
-                        type="button"
-                        id="mic-button"
-                        title="Record a voice message (Simulated)"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg active:shadow-sm disabled:bg-gray-400 dark:bg-blue-800 dark:hover:bg-blue-700"
-                    >
-                        <!-- Mic Icon -->
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0M12 19v2M12 2v5M8.7 8.7l2.1 2.1"/></svg>
-                    </button>
-
-                    <!-- Send Button -->
-                    <button
-                        type="submit"
-                        id="send-button"
-                        title="Send text message"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg active:shadow-sm disabled:bg-gray-400 dark:bg-blue-800 dark:hover:bg-blue-700"
-                    >
-                        <!-- Send Icon -->
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </button>
-                </form>
-            </footer>
-
-        </div>
-
-        <!-- 2. UTILITY PANEL (1/3 width) - Now only contains the Welcome Hub -->
-        <div id="utility-panel" class="md:col-span-1 flex flex-col gap-6 h-full">
-            
-            <!-- Welcome/Key Features Panel - Now takes full height -->
-            <div id="welcome-panel" class="p-6 flex-grow bg-white dark:bg-gray-800 polished-card-shadow rounded-2xl h-full overflow-y-auto">
-                <h2 class="text-2xl font-extrabold text-blue-700 dark:text-blue-400 border-b pb-2 mb-4 border-blue-200 dark:border-gray-600">
-                    MMCOE Knowledge Hub
-                </h2>
-                <div id="welcome-panel-text" class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                    <!-- Content set by JS in updateUIText -->
-                </div>
-                
-                <ul class="space-y-3 p-4 bg-blue-50 dark:bg-gray-900 rounded-xl shadow-inner border border-blue-100 dark:border-gray-700">
-                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
-                        <span class="mr-2 text-xl">🧠</span> **Advanced AI Intent Detection** for misspellings!
-                    </li>
-                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
-                        <span class="mr-2 text-xl">🔊</span> **New! Text-to-Speech (TTS)** playback.
-                    </li>
-                    <li class="flex items-center text-sm font-semibold text-blue-800 dark:text-blue-300">
-                        <span class="mr-2 text-xl">⚡</span> **Instant KB Responses** for keywords like "placements" or "bus".
-                    </li>
-                </ul>
-            </div>
-
-        </div>
-        
-    </div>
-</body>
-</html>
