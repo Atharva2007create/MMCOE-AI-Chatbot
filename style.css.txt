@@ -1,0 +1,249 @@
+/* Custom Styles for the 'MMCOE Vector' theme */
+
+/* New styles for the initial decompilation animation */
+#intro-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    background-color: black;
+}
+
+/* Ensure main content is full screen when revealed */
+#main-content {
+    height: 100vh;
+    width: 100vw;
+    position: relative; 
+    opacity: 0;
+}
+
+/* Light Mode Variables (Default) */
+:root {
+    --primary-color: #6C0000;
+    --primary-light: #C5221F;
+    --highlight-color: #9A1C19; 
+    
+    --background-page: #f3f4f6; 
+    --background-panel: white;
+    --text-color: #1f2937;
+    
+    --chat-bg: white;
+    --user-bg: #fcebeb;
+    --bot-bg: var(--primary-light);
+    
+    --footer-bg: white;
+    --input-bg: #f9fafb;
+    --input-border: #e5e7eb;
+}
+
+/* Dark Mode Overrides */
+.dark-mode {
+    --primary-color: #FF7043; 
+    --primary-light: #E53935; 
+    --highlight-color: #C5221F;
+    
+    --background-page: #121212; 
+    --background-panel: #1e1e1e;
+    --text-color: #e0e0e0;
+    
+    --chat-bg: #1e1e1e;
+    --user-bg: #333333;
+    --bot-bg: var(--primary-light);
+    
+    --footer-bg: #2d2d2d;
+    --input-bg: #444444;
+    --input-border: #555555;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-page);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Main two-column container */
+#app-container {
+    display: flex;
+    height: 100vh;
+    max-width: 1280px; 
+    margin: 0 auto;
+    padding: 24px; 
+}
+
+/* Sidebar and Chat Panel Polish */
+.polished-panel {
+    border: 1px solid var(--input-border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
+    background-color: var(--background-panel);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-mode h1, .dark-mode h2, .dark-mode .text-gray-700, .dark-mode .text-gray-900 {
+    color: var(--text-color) !important;
+}
+
+/* Chat container for scrolling */
+.chat-container {
+    height: calc(100vh - 14rem); 
+    overflow-y: auto;
+    background-color: var(--chat-bg);
+    padding: 1.5rem;
+    transition: background-color 0.3s ease;
+}
+
+/* Custom scrollbar for a sleek look */
+.chat-container::-webkit-scrollbar-thumb {
+    background-color: #777;
+}
+.dark-mode .chat-container::-webkit-scrollbar-thumb {
+    background-color: #444;
+}
+
+/* User message bubble */
+.user-message {
+    background-color: var(--user-bg);
+    color: var(--text-color);
+    border-radius: 1.25rem 1.25rem 0.5rem 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); 
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Bot message bubble */
+.bot-message {
+    background-color: var(--bot-bg);
+    color: white;
+    border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+}
+
+.bot-message a {
+    color: #ffcdd2;
+    text-decoration: underline;
+}
+
+/* Markdown generated styles */
+.bot-message h1, .bot-message h2, .bot-message h3, .bot-message h4 {
+    font-weight: bold;
+    margin-top: 10px;
+}
+.bot-message ul, .bot-message ol {
+    padding-left: 20px;
+    list-style-type: disc;
+}
+.bot-message table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.bot-message th, .bot-message td {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    text-align: left;
+}
+.bot-message th {
+    background-color: rgba(0, 0, 0, 0.15);
+    font-weight: 700;
+}
+.bot-message tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Translation area specific styling */
+.translation-content h1, .translation-content h2, 
+.translation-content h3, .translation-content h4 {
+    color: #ffcdd2;
+}
+.translation-content ul, .translation-content ol {
+     color: #ffcdd2;
+}
+
+/* Source tags inside bot message */
+.source-tag {
+    background-color: rgba(0, 0, 0, 0.2); 
+    color: #fff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.source-tag:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Quick Reply Buttons */
+.quick-reply-button {
+    border: 1px solid var(--input-border);
+    color: var(--text-color);
+    background-color: var(--input-bg);
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.quick-reply-button:hover {
+    background-color: var(--primary-light);
+    color: white;
+    border-color: var(--primary-light);
+}
+
+/* Footer and Input Field Styling */
+#app-footer {
+    background-color: var(--footer-bg);
+    border-color: var(--input-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.app-input {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border-color: var(--input-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.app-input:focus {
+     border-color: var(--highlight-color);
+     box-shadow: 0 0 0 4px rgba(var(--highlight-color), 0.1);
+}
+
+/* Voice Mic Pulsing Effect */
+.mic-listening {
+    animation: pulse 1.5s infinite;
+    background-color: #ef4444 !important;
+    color: white !important;
+}
+
+/* TTS button styling */
+.tts-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+}
+.tts-button:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+.tts-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
