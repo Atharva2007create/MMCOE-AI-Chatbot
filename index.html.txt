@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMCOE Vector - Direct API Chatbot</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="antialiased">
+    <!-- 1. Fullscreen Canvas for Decompilation Intro -->
+    <canvas id="intro-canvas"></canvas>
+
+    <!-- 2. Main Content Wrapper, hidden until intro finishes -->
+    <div id="main-content" class="hidden h-full w-full"> 
+        
+        <div id="app-container" class="space-x-5">
+            
+            <!-- Sidebar -->
+            <aside class="w-1/4 min-w-[240px] h-full rounded-xl polished-panel flex flex-col p-6 shadow-xl">
+                <h1 class="text-3xl font-extrabold text-[var(--primary-color)] pb-3 mb-4 border-b-2 border-gray-100 dark:border-gray-700">
+                    MMCOE <span class="block text-xl font-semibold text-gray-700">Vector AI</span>
+                </h1>
+
+                <div class="space-y-4">
+                    <h2 class="text-xl font-bold text-gray-700">AI Capabilities</h2>
+                    
+                    <div class="space-y-2 text-sm text-gray-600 mt-2">
+                        <!-- Voice Query -->
+                        <div id="voice-query-div" class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150" onclick="document.getElementById('mic-button').click()">
+                            <i data-lucide="mic" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Voice Query (STT)</p>
+                                <p class="text-xs text-gray-500">Hands-free input for questions</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Language Detection -->
+                        <div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="shield" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Real-time Derogatory Language Detection</p>
+                                <p class="text-xs text-gray-500">Ensuring a safe and polite academic environment. 🚫</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Audio Readback -->
+                        <div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="volume-2" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0" id="audio-readback-icon"></i>
+                            <div>
+                                <p class="font-medium text-gray-900" id="audio-readback-status">Multi-Language Audio (TTS)</p>
+                                <p class="text-xs text-gray-500">English, Hindi, Marathi playback</p>
+                            </div>
+                        </div>
+
+                        <!-- Structured Tables -->
+                        <div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="table" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Structured Tables</p>
+                                <p class="text-xs text-gray-500">Clean tables for courses/fees</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Translation -->
+                        <div class="flex items-start space-x-3 py-2 px-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition duration-150">
+                            <i data-lucide="languages" class="w-5 h-5 text-red-700 dark:text-red-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Translate to Hindi/Marathi</p>
+                                <p class="text-xs text-gray-500">Instant visual translation of responses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date and Day Tracker -->
+                <div id="date-day-tracker" class="mt-4 p-3 rounded-xl text-center shadow-2xl transition duration-300 border-b-4 border-white/50" 
+                     style="background-color: var(--primary-light); color: white;">
+                    <p class="text-[10px] font-semibold opacity-90 mb-1 tracking-wider uppercase">CURRENT SESSION DATE</p>
+                    <p id="current-day" class="text-2xl font-extrabold tracking-wider"></p>
+                    <p id="current-date" class="text-sm font-medium opacity-80 mt-1"></p>
+                </div>
+
+                <!-- History Panel -->
+                <div id="history-panel" class="hidden mt-4 p-3 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-900 dark:text-white">Chat History</h3>
+                        <button onclick="clearAllHistory()" class="text-xs text-red-600 hover:text-red-800" title="Clear All History">
+                            Clear All
+                        </button>
+                    </div>
+                    <div id="history-content">
+                        <div id="history-list" class="max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Section -->
+            <section class="flex-grow flex flex-col h-full rounded-xl polished-panel overflow-hidden shadow-xl">
+                
+                <!-- Header -->
+                <header class="bg-[var(--primary-color)] p-4 shadow-lg sticky top-0 z-10 rounded-t-xl">
+                    <h2 class="text-2xl font-extrabold text-white text-center tracking-wide">MMCOE Vector Chat</h2>
+                </header>
+
+                <!-- Chat Messages -->
+                <div id="chat-box" class="chat-container flex-grow space-y-4">
+                    <!-- Initial Bot Message -->
+                    <div class="flex justify-start">
+                        <div class="bot-message p-4 max-w-sm md:max-w-md shadow-lg transition duration-300">
+                            <p class="font-semibold mb-1">Hello! 👋 Welcome to your Educational Assistant Bot.</p>
+                            <p>I'm ready to help you with your queries. How can I assist you today? 🎓</p>
+                            
+                            <div class="mt-3 pt-2 border-t border-white/30 space-y-2">
+                                <div id="tts-buttons-msg-initial" class="flex flex-wrap gap-2 justify-start text-xs font-medium">
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('en', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (EN)
+                                    </button>
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('hi', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (HI)
+                                    </button>
+                                    <button class="tts-button text-xs text-white/70 hover:text-white transition duration-150 flex items-center" data-message-id="msg-initial" onclick="handleMultiLanguageTTS('mr', this)">
+                                        <i data-lucide="volume-2" class="w-4 h-4 mr-1"></i> Play (MR)
+                                    </button>
+                                </div>
+                                <div id="translate-buttons-msg-initial" class="flex justify-end text-right space-x-2 text-xs font-medium">
+                                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="mr" onclick="handleInitialTranslation(this, 'mr', 'msg-initial')">Translate to Marathi 🇮🇳</button>
+                                    <span class="text-white/50 mx-1">|</span>
+                                    <button class="text-xs text-white/70 hover:text-white underline p-1 rounded transition duration-150" data-lang="hi" onclick="handleInitialTranslation(this, 'hi', 'msg-initial')">Translate to Hindi 🇮🇳</button>
+                                </div>
+                                <div id="translation-container-msg-initial" data-original-text="Hello! 👋 Welcome to your Educational Assistant Bot. I'm ready to help you with your queries. How can I assist you today? 🎓"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Replies -->
+                <div id="quick-replies" class="p-4 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-xl">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('How do I apply for admission?')">Admission Process 📝</button>
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('What is the fee structure for IT?')">IT Fee Structure 💰</button>
+                        <button class="quick-reply-button text-sm font-medium py-2 px-4 rounded-full" onclick="quickReply('What are the core subjects in Civil Engineering?')">Civil Core Subjects 🏗️</button>
+                    </div>
+                </div>
+
+                <!-- Footer Input -->
+                <footer id="app-footer" class="app-footer border-t p-4 flex items-center space-x-3 shadow-2xl">
+                    <button id="theme-toggle-button" onclick="toggleTheme()" class="text-gray-500 hover:text-[var(--highlight-color)] p-2 rounded-full transition duration-150 active:scale-90">
+                        <i data-lucide="moon" class="w-6 h-6"></i>
+                    </button>
+
+                    <button id="mic-button" class="text-gray-500 hover:text-[var(--highlight-color)] p-2 rounded-full transition duration-150 active:scale-90" onclick="toggleSpeechRecognition()">
+                        <i data-lucide="mic-2" class="w-6 h-6"></i>
+                    </button>
+
+                    <input type="text" id="user-input" placeholder="Ask about MMCOE... or speak to me via the mic" class="app-input flex-grow p-4 rounded-2xl border-2 focus:ring-4 placeholder-gray-400 transition duration-200" onkeydown="if(event.key === 'Enter') sendMessage()">
+                    
+                    <button id="send-button" onclick="sendMessage()" class="bg-[var(--primary-light)] hover:bg-[var(--highlight-color)] text-white font-bold py-3 px-7 rounded-2xl shadow-lg transition duration-200 active:scale-[0.98] disabled:bg-gray-400">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </footer>
+            </section>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
