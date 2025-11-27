@@ -98,9 +98,10 @@ Professional Boundaries: Strict domain enforcement
 
 
 
-🔥 Built with Passion by MMCOE Students 🔥
+
+                                                  🔥 Built with Passion by MMCOE Students 🔥
                                                                         
-Transforming education through elite AI technology
+                                                 Transforming education through elite AI technology
                                                                         
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                                         
