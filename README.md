@@ -96,6 +96,14 @@ Content Safety: Real-time moderation system
 Privacy Protection: Client-side data management
 Professional Boundaries: Strict domain enforcement
 
+🤖 INSTRUCTIONS TO USE MMCOE VECTOR CHATBOT :
+
+1)Replace "Your API Key here" by your own API Key
+2)Environment Setup
+Prerequisites:
+Modern browser (Chrome 90+, Firefox 88+, Safari 14+)
+HTTPS environment for voice features
+Stable internet connection
 
 
 
