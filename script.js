@@ -1,5 +1,5 @@
 // --- API Configuration and State ---
-const API_KEY = "AIzaSyCnAxoO2FnfRIO-avuUusqp0d3P_5yKsWE";
+const API_KEY = "YOUR API KEY HERE";
 const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
 const CHAT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`; 
         
@@ -1086,3 +1086,4 @@ window.addEventListener('resize', function() {
         setupIntroAnimation();
     }
 });
+
