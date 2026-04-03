@@ -1,5 +1,5 @@
 // --- API Configuration and State ---
-const API_KEY = "AIzaSyCdbl-npOJ7jIk4cRaDNmpWEUGkj2Dvc6A";
+const API_KEY = "Your API Key here";
 const MODEL_NAME = "gemini-2.5-flash";
 const CHAT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 // --- TTS Configuration ---
