@@ -6,12 +6,14 @@
 <title>MMCOE Vector - Direct API Chatbot</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
 
+/* Custom Styles for the 'MMCOE Vector' theme - ORIGINAL VERSION */
+
+/* New styles for the initial decompilation animation */
 #intro-canvas {
 position: fixed;
 top: 0;
@@ -22,13 +24,16 @@ z-index: 1000;
 background-color: black;
 }
 
+/* Ensure main content is full screen when revealed */
 #main-content {
 height: 100vh;
 width: 100vw;
 position: relative;
-opacity: 0; 
+opacity: 0; /* Starts hidden and fades in */
 }
 
+
+/* Light Mode Variables (Default) */
 :root {
 --primary-color: #6C0000; /* Dark Maroon */
 --primary-light: #C5221F;
@@ -47,6 +52,7 @@ opacity: 0;
 --input-border: #e5e7eb;
 }
 
+/* Dark Mode Overrides */
 .dark-mode {
 --primary-color: #FF7043;
 --primary-light: #E53935;
@@ -72,39 +78,16 @@ color: var(--text-color);
 transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Main two-column container */
 #app-container {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-  
-    width: 1280px; 
-    max-width: 90vw;
-    height: 80vh; 
-    
-    margin: auto;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+display: grid;
+height: 100vh;
+max-width: 1280px;
+margin: 0 auto;
+padding: 24px;
 }
 
-body {
-    background-color: #f3f4f6;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
+/* Sidebar and Chat Panel Polish */
 .polished-panel {
 border: 1px solid var(--input-border);
 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -116,6 +99,7 @@ transition: box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s 
 color: var(--text-color) !important;
 }
 
+/* Chat container for scrolling */
 .chat-container {
 height: calc(100vh - 14rem);
 overflow-y: auto;
@@ -124,6 +108,7 @@ padding: 1.5rem;
 transition: background-color 0.3s ease;
 }
 
+/* Custom scrollbar for a sleek look */
 .chat-container::-webkit-scrollbar-thumb {
 background-color: #777;
 }
@@ -131,6 +116,7 @@ background-color: #777;
 background-color: #444;
 }
 
+/* User message bubble */
 .user-message {
 background-color: var(--user-bg);
 color: var(--text-color);
@@ -139,6 +125,7 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Bot message bubble */
 .bot-message {
 background-color: var(--bot-bg);
 color: white;
@@ -152,6 +139,7 @@ color: #ffcdd2;
 text-decoration: underline;
 }
 
+/* Markdown generated styles */
 .bot-message h1, .bot-message h2, .bot-message h3, .bot-message h4 {
 font-weight: bold;
 margin-top: 10px;
@@ -470,7 +458,7 @@ Clear All
 
 <script>
 // --- API Configuration and State ---
-const API_KEY = "Your API key here";
+const API_KEY = "Your API Key here";
 const MODEL_NAME = "gemini-2.5-flash";
 const CHAT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
@@ -1478,7 +1466,7 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 if (!SpeechRecognition) {
 console.warn('Speech Recognition not supported in this browser. Feature disabled.');
 if (micButton) micButton.style.display = 'none';
-const errorMessage = "Speech recognition is not supported in this browser. Please use Chrome or Edge for voice input. 💬";
+const errorMessage = "Speech recognition is not supported in this browser. Please use Chrome or Edge for voice input.";
 displayMessage(errorMessage, 'bot');
 return;
 }
@@ -1508,7 +1496,7 @@ micButton.disabled = false;
 micButton.innerHTML = '<i data-lucide="mic" class="w-6 h-6"></i>';
 if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-if (userInput) userInput.placeholder = "👂 Listening... Speak now (automatic restart)";
+if (userInput) userInput.placeholder = "Listening... Speak now (automatic restart)";
 };
 
 speechRecognitionInstance.onresult = (event) => {
@@ -1542,7 +1530,7 @@ sendMessage();
 
 // Update placeholder with interim results for better UX
 if (interimTranscript && userInput && !hasFinalResult) {
-userInput.placeholder = `👂 Recognizing: ${interimTranscript}...`;
+userInput.placeholder = `Listening: ${interimTranscript}...`;
 }
 
 } catch (err) {
@@ -1561,15 +1549,15 @@ case 'permission-denied':
 message = "⚠️ Microphone access denied. Please allow microphone permissions in your browser settings.";
 break;
 case 'no-speech':
-message = "🎤 No speech detected. Please speak clearly and try again.";
+message = " No speech detected. Please speak clearly and try again.";
 autoRestart = true;
 break;
 case 'network':
-message = "🌐 Network error during speech processing. Trying again...";
+message = " Network error during speech processing. Trying again...";
 autoRestart = true;
 break;
 case 'audio-capture':
-message = "🔇 Unable to capture audio. Please check your microphone.";
+message = "Unable to capture audio. Please check your microphone.";
 break;
 case 'aborted':
 message = "Voice recognition aborted. Starting again...";
@@ -1700,7 +1688,7 @@ speechRecognitionInstance.start();
 .catch((error) => {
 console.error('Microphone permission denied:', error);
 recognitionStarting = false;
-const permissionMessage = "🔒 Microphone access is required for voice input. Please allow microphone permissions in your browser settings.";
+const permissionMessage = " Microphone access is required for voice input. Please allow microphone permissions in your browser settings.";
 displayMessage(permissionMessage, 'bot');
 if (micButton) {
 micButton.disabled = false;
@@ -1775,7 +1763,7 @@ body: JSON.stringify(payload)
 const result = await response.json();
 
 const candidate = result.candidates?.[0];
-let botText = "I apologize, an unknown error occurred when processing the AI response. Please try a different query. 😔";
+let botText = "I apologize, an unknown error occurred when processing the AI response. Please try a different query.";
 let sources = [];
 
 if (candidate && candidate.content?.parts?.[0]?.text) {
@@ -1797,11 +1785,11 @@ botText = `MMCOE API Error: **${result.error.message}** Please check your networ
 
 displayMessage(botText, 'bot', sources, false, messageId, rawBotText);
 
-// Add to chat history
+
 addToChatHistory(query, botText);
 
 } catch (error) {
-console.error("MMCOE API Request Failed:", error);
+console.error("Network Error:", error);
 const errorMessage = "Network Error: Failed to connect to the Google service for RAG. Please check your internet connection. 🌐";
 displayMessage(errorMessage, 'bot');
 addToChatHistory(query, errorMessage);
