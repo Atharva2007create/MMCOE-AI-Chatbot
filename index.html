@@ -80,14 +80,35 @@ transition: background-color 0.3s ease, color 0.3s ease;
 
 /* Main two-column container */
 #app-container {
-display: grid;
-height: 100vh;
-max-width: 1280px;
-margin: 0 auto;
-padding: 24px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: calc(100vh - 48px);
+    max-width: 1280px;
+    margin: 24px auto;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
 }
 
-/* Sidebar and Chat Panel Polish */
+body {
+    background-color: #f3f4f6;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    #app-container {
+        grid-template-columns: 1fr;
+        height: 100vh;
+        margin: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+}
 .polished-panel {
 border: 1px solid var(--input-border);
 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
