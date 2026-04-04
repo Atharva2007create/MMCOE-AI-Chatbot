@@ -6,25 +6,12 @@
 <title>MMCOE Vector - Direct API Chatbot</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          clifford: '#da373d',
-        }
-      }
-    }
-  }
-</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
 
-/* Custom Styles for the 'MMCOE Vector' theme - ORIGINAL VERSION */
-
-/* New styles for the initial decompilation animation */
 #intro-canvas {
 position: fixed;
 top: 0;
@@ -35,16 +22,13 @@ z-index: 1000;
 background-color: black;
 }
 
-/* Ensure main content is full screen when revealed */
 #main-content {
 height: 100vh;
 width: 100vw;
 position: relative;
-opacity: 0; /* Starts hidden and fades in */
+opacity: 0; 
 }
 
-
-/* Light Mode Variables (Default) */
 :root {
 --primary-color: #6C0000; /* Dark Maroon */
 --primary-light: #C5221F;
@@ -63,7 +47,6 @@ opacity: 0; /* Starts hidden and fades in */
 --input-border: #e5e7eb;
 }
 
-/* Dark Mode Overrides */
 .dark-mode {
 --primary-color: #FF7043;
 --primary-light: #E53935;
@@ -89,16 +72,25 @@ color: var(--text-color);
 transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Main two-column container */
 #app-container {
-display: flex;
-height: 100vh;
-max-width: 1280px;
-margin: 0 auto;
-padding: 24px;
+  display: grid;
+ 
+  grid-template-columns: 260px 1fr; 
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Sidebar and Chat Panel Polish */
+
+@media (max-width: 768px) {
+  #app-container {
+    grid-template-columns: 1fr; 
+  }
+}
+
+
 .polished-panel {
 border: 1px solid var(--input-border);
 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -110,7 +102,6 @@ transition: box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s 
 color: var(--text-color) !important;
 }
 
-/* Chat container for scrolling */
 .chat-container {
 height: calc(100vh - 14rem);
 overflow-y: auto;
@@ -119,7 +110,6 @@ padding: 1.5rem;
 transition: background-color 0.3s ease;
 }
 
-/* Custom scrollbar for a sleek look */
 .chat-container::-webkit-scrollbar-thumb {
 background-color: #777;
 }
@@ -127,7 +117,6 @@ background-color: #777;
 background-color: #444;
 }
 
-/* User message bubble */
 .user-message {
 background-color: var(--user-bg);
 color: var(--text-color);
@@ -136,7 +125,6 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Bot message bubble */
 .bot-message {
 background-color: var(--bot-bg);
 color: white;
@@ -150,7 +138,6 @@ color: #ffcdd2;
 text-decoration: underline;
 }
 
-/* Markdown generated styles */
 .bot-message h1, .bot-message h2, .bot-message h3, .bot-message h4 {
 font-weight: bold;
 margin-top: 10px;
