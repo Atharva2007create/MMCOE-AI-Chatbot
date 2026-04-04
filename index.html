@@ -80,13 +80,22 @@ transition: background-color 0.3s ease, color 0.3s ease;
 
 /* Main two-column container */
 #app-container {
-display: flex;
-height: 100vh;
-max-width: 1280px;
-margin: 0 auto;
-padding: 24px;
+  display: grid;
+  /* Sidebar is fixed at 260px, Chat takes the remaining 1 fraction (1fr) of space */
+  grid-template-columns: 260px 1fr; 
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents the whole page from scrolling, only the chat should scroll */
 }
 
+/* Mobile Responsive Fix */
+@media (max-width: 768px) {
+  #app-container {
+    grid-template-columns: 1fr; /* On phones, stack them vertically */
+  }
+}
 /* Sidebar and Chat Panel Polish */
 .polished-panel {
 border: 1px solid var(--input-border);
