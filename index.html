@@ -1,6 +1,9 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script>window.__V0_SANDBOX_ID__="sb-2csg1uf8zpdu";window.__V0_CHAT_ID__="pwMl54ANmYY";window.__V0_SOURCE_MAP_FRAME_ROOT__="file:///vercel/share/v0-project/.next/dev/static";;(function v3(e){let t=Symbol.for("__next_dev_bridge_runtime_observer__"),r=window[t],n=e||{},i=n.messageType||"next-dev-bridge:runtime",a=n.readyMessageType||"next-dev-bridge:runtime-ready",o=n.resetMessageType||"next-dev-bridge:runtime-reset",s=n.targetOrigin||"*",u=!1!==n.isAppDirectory,l="string"==typeof n.sourceMapEndpoint&&n.sourceMapEndpoint?n.sourceMapEndpoint:"",c="string"==typeof n.sourceMapFrameRoot&&n.sourceMapFrameRoot?n.sourceMapFrameRoot.replace(/\/+$/,""):"";if(r)return void f(a,{existing:!0,href:window.location.href,windowId:r.windowId});let d=1,p=`${Date.now()}-${Math.random().toString(36).slice(2)}`,h={errors:[]};function f(e,t){window.parent!==window&&window.parent.postMessage({type:e,...t},s)}async function m(e){let t={...e,id:d++,severity:"recoverable",at:new Date().toISOString()};h.errors=[...h.errors,t],f(i,{event:{type:"runtime:error",error:t,errors:h.errors},state:h,href:window.location.href,windowId:p}),l&&w(t).then(e=>{h.errors.some(e=>e.id===t.id)&&(t.mapped=e,h.errors=h.errors.map(e=>e.id===t.id?t:e),f(i,{event:{type:"runtime:error",error:t,errors:h.errors},state:h,href:window.location.href,windowId:p}))}).catch(()=>{})}function g(){0!==h.errors.length&&(h.errors=[],f(i,{event:{type:"runtime:cleared",errors:[]},state:h,href:window.location.href,windowId:p}))}function v(e){var t,r,n,i,a;let o,s,u,l;m((o=_((t=e).error,t.message||"Uncaught error"),s=t.filename||void 0,u=U(t.lineno),l=U(t.colno),{source:"error",name:o.name,message:o.message,stack:o.stack||(r=o.message,n=s,i=u,a=l,n&&i&&a?`${r}
+    at <anonymous> (${n}:${i}:${a})`:""),filename:s,line:u,column:l}))}function y(e){let t;m({source:"unhandledrejection",name:(t=_(e.reason,"Unhandled promise rejection")).name,message:t.message,stack:t.stack})}function b(e){let t=e.data;t&&"object"==typeof t&&t.type===o&&g()}function _(e,t){return e instanceof Error?{name:e.name||"Error",message:e.message||t,stack:e.stack||""}:e&&"object"==typeof e?{name:"string"==typeof e.name?e.name:"Error",message:"string"==typeof e.message?e.message:function(e){try{return JSON.stringify(e)}catch{return""}}(e)||t,stack:"string"==typeof e.stack?e.stack:""}:{name:"Error",message:"string"==typeof e?e:null==e?t:String(e),stack:""}}async function w(e){var t,r;let n=(t=String(e.stack).split("\n").map(j).filter(Boolean),r=e.filename,t.map(e=>({...e,file:function(e,t){var r,n;if("string"!=typeof e||0===e.length)return;let i=A(e);if(i)return O(i);if(r=e,/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(r))return e;if(t&&N(t)===N(e)){let e=A(t);return e?O(e):t}let a=e.startsWith("_next/")?`/${e}`:e;return a.startsWith("/_next/")?O(a):!(n=a).includes("/")&&n.endsWith(".js")&&(n.startsWith("_")||n.includes("._.")||n.startsWith("node_modules_")||n.startsWith("turbopack-"))?O(`/_next/static/chunks/${a}`):e}(e.file,r)})));return{message:e.message,stack:e.stack,frames:n,mappedFrames:n.length>0?await x(n):[]}}async function x(e){let t=function(e){let t=[],r=new Set;for(let n of(k(t,r,e),[R,I,P])){let i=function(e,t){let r=!1,n=e.map(e=>{if("string"!=typeof e.file)return e;let n=t(e.file);return n&&n!==e.file?(r=!0,{...e,file:n}):e});return r?n:null}(e,n);i&&k(t,r,i)}return t}(e),r=null;for(let n of t){let t=await E(n);if(function(e){for(let n of e){var t,r;let e=D(t=n)&&"fulfilled"===t.status&&D(t.value)&&D(t.value.originalStackFrame)?t.value.originalStackFrame:null;if(!e||!0===e.ignored)continue;let i="string"!=typeof(r=e.file)?"":r.trim();if(!(!i||function(e){let t=C(e);return/\/(?:_next\/static|\.next\/dev\/static)\/chunks\//.test(t)||t.includes("/next/dist/compiled/")}(i)))return!0}return!1}(t.mappedFrames))return S(e,t.mappedFrames);if(r=t.mappedFrames,!t.shouldTryNextVariant)break}return r??$(e,"No stack frames to map.")}async function E(e){try{let t=function(e){try{return new URL(e,window.location.href).origin!==window.location.origin}catch{return!1}}(l),r={body:JSON.stringify({frames:e,isServer:!1,isEdgeServer:!1,isAppDirectory:u,sourceOrigin:window.location.origin}),cache:"no-store",credentials:t?"omit":"same-origin",method:"POST",mode:t?"cors":"same-origin"};t||(r.headers={"content-type":"application/json"});let n=await fetch(l,{...r});if(!n.ok||204===n.status){let t=await n.text().catch(()=>"");return{mappedFrames:$(e,t||"No original stack frame response from Next dev server."),shouldTryNextVariant:!1}}let i=await n.json();if(!Array.isArray(i))return{mappedFrames:$(e,"Invalid original stack frame response from Next dev server."),shouldTryNextVariant:!1};return{mappedFrames:S(e,i),shouldTryNextVariant:!0}}catch(t){return{mappedFrames:$(e,t instanceof Error?t.message:String(t)),shouldTryNextVariant:!1}}}function S(e,t){return e.map((e,r)=>t[r]||{status:"rejected",reason:"No original stack frame response for frame."})}function $(e,t){return e.map(()=>({status:"rejected",reason:t}))}function k(e,t,r){let n=JSON.stringify(r.map(e=>e.file));t.has(n)||(t.add(n),e.push(r))}function O(e){return c?`${c}/${e.replace(/^\/_next\/static\/?/,"")}`:e}function R(e){let t=T(e);return t?`.next/dev/static/${t.replace(/^\/_next\/static\/?/,"")}`:null}function I(e){let t=T(e);return t?t.replace(/^\/+/,""):null}function P(e){let t=T(e);if(!t)return null;try{return new URL(t,window.location.origin).href}catch{return null}}function T(e){var t,r;let n,i=C(e);if(i.startsWith("/_next/static/"))return i;let a=(r="/.next/dev/static/",-1===(n=(t=i).indexOf(r))?"":t.slice(n+r.length));return a?`/_next/static/${a}`:""}function A(e){if(e.startsWith("/_next/"))return e;if(e.startsWith("_next/"))return`/${e}`;try{let t=new URL(e);return t.pathname.startsWith("/_next/")?t.pathname:""}catch{return""}}function C(e){try{return new URL(e).pathname}catch{}return e.startsWith("/")?e:`/${e}`}function N(e){return e.split("?")[0].split(/[\\/]/).pop()||e}function D(e){return"object"==typeof e&&null!==e}function j(e){let t=e.trim();if(!t.startsWith("at "))return null;let r=t.slice(3),n="<anonymous>",i=r,a=r.indexOf("("),o=r.endsWith(")")?r.length-1:-1;-1!==a&&-1!==o&&o>a&&(n=r.slice(0,a).trim()||"<anonymous>",i=r.slice(a+1,o));let s=/^(.*):(\d+):(\d+)$/.exec(i);return s?{file:s[1],methodName:n,arguments:[],line1:Number(s[2]),column1:Number(s[3])}:null}function U(e){return"number"==typeof e&&Number.isFinite(e)&&e>0?e:void 0}window.addEventListener("error",v),window.addEventListener("unhandledrejection",y),window.addEventListener("message",b),window[t]={windowId:p,getSnapshot:()=>({errors:h.errors.slice()}),reset:g,stop:function(){window.removeEventListener("error",v),window.removeEventListener("unhandledrejection",y),window.removeEventListener("message",b),delete window[t]}},f(a,{existing:!1,href:window.location.href,windowId:p})})({"messageType":"next-dev-bridge:event","sourceMapEndpoint":"/_v0/next-dev-bridge-stack-frames","sourceMapFrameRoot":"file:///vercel/share/v0-project/.next/dev/static"});</script><script async src="/v0-runtime-dist.js"></script><style>nextjs-portal{display: none !important}</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MMCOE Vector - Direct API Chatbot</title>
@@ -262,12 +265,408 @@ opacity: 1;
 opacity: 0.5;
 }
 }
+
+/* =========================================================
+   LUSION-STYLE ENHANCEMENT LAYER
+   Visual fidelity / depth / physics ONLY.
+   Layout, positions, grid + palette are untouched.
+   ========================================================= */
+
+:root {
+  --ease-lusion: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Layered, depth-based multi-drop shadows (light mode) */
+  --elev-rest:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 6px 12px -6px rgba(15, 23, 42, 0.12),
+    0 18px 36px -18px rgba(15, 23, 42, 0.18),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.60);
+  --elev-hover:
+    0 2px 4px rgba(15, 23, 42, 0.06),
+    0 20px 40px -15px rgba(15, 23, 42, 0.30),
+    0 40px 80px -40px rgba(15, 23, 42, 0.25),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.75);
+  --elev-press:
+    0 1px 2px rgba(15, 23, 42, 0.10),
+    inset 0 2px 6px rgba(15, 23, 42, 0.18);
+  --rim-light: inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
+  --ambient-a: rgba(197, 34, 31, 0.10);
+  --ambient-b: rgba(30, 41, 59, 0.06);
+  --shine: rgba(255, 255, 255, 0.55);
+}
+
+.dark-mode {
+  --elev-rest:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 8px 16px -8px rgba(0, 0, 0, 0.55),
+    0 24px 48px -24px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+  --elev-hover:
+    0 2px 6px rgba(0, 0, 0, 0.50),
+    0 20px 40px -15px rgba(0, 0, 0, 0.70),
+    0 48px 96px -48px rgba(0, 0, 0, 0.80),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  --elev-press:
+    0 1px 2px rgba(0, 0, 0, 0.60),
+    inset 0 2px 8px rgba(0, 0, 0, 0.65);
+  --rim-light: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  --ambient-a: rgba(229, 57, 53, 0.16);
+  --ambient-b: rgba(51, 65, 85, 0.22);
+  --shine: rgba(255, 255, 255, 0.14);
+}
+
+/* ---- Ambient fluid background canvas (sits under everything) ---- */
+#ambient-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.6s var(--ease-lusion);
+}
+
+/* Soft ambient mesh glow behind the app */
+#app-container {
+  position: relative;
+  z-index: 1;
+}
+#app-container::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 45% at 18% 22%, var(--ambient-a) 0%, transparent 70%),
+    radial-gradient(50% 50% at 82% 78%, var(--ambient-b) 0%, transparent 70%);
+  filter: blur(40px);
+  opacity: 0.9;
+  animation: meshDrift 18s ease-in-out infinite alternate;
+}
+@keyframes meshDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2%, -1.5%, 0) scale(1.04); }
+  100% { transform: translate3d(-1.5%, 2%, 0) scale(1.02); }
+}
+
+/* ---- Panels: extruded glass depth instead of flat shadows ---- */
+.polished-panel {
+  box-shadow: var(--elev-rest) !important;
+  backdrop-filter: saturate(1.15);
+  transform: translate3d(0, 0, 0);
+  will-change: transform, box-shadow;
+  transition:
+    box-shadow 0.55s var(--ease-lusion),
+    transform 0.55s var(--ease-lusion),
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+.polished-panel:hover {
+  box-shadow: var(--elev-hover) !important;
+  transform: translate3d(0, -2px, 0);
+}
+
+/* ---- Header bar: physical 3D embedded bar ---- */
+header.bg-\[var\(--primary-color\)\] {
+  position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.20);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 42%,
+    rgba(0, 0, 0, 0.14) 100%
+  );
+  box-shadow:
+    var(--rim-light),
+    0 10px 24px -12px rgba(0, 0, 0, 0.55),
+    0 2px 0 0 rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+header.bg-\[var\(--primary-color\)\]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 60%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  transform: translate3d(0, 0, 0) skewX(-12deg);
+  animation: barSheen 9s var(--ease-lusion) infinite;
+}
+@keyframes barSheen {
+  0%, 70%  { transform: translate3d(-40%, 0, 0) skewX(-12deg); }
+  100%     { transform: translate3d(320%, 0, 0) skewX(-12deg); }
+}
+
+/* ---- Session date card: rim light + ambient mesh glow ---- */
+#date-day-tracker {
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.20) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(0, 0, 0, 0.16) 100%
+  );
+  box-shadow:
+    var(--rim-light),
+    0 14px 30px -14px rgba(120, 12, 12, 0.55),
+    0 30px 60px -40px rgba(0, 0, 0, 0.55);
+  transition: transform 0.5s var(--ease-lusion), box-shadow 0.5s var(--ease-lusion);
+}
+#date-day-tracker::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  z-index: -1;
+  border-radius: 24px;
+  background: radial-gradient(60% 60% at 50% 50%, var(--primary-light) 0%, transparent 72%);
+  filter: blur(26px);
+  opacity: 0.35;
+  animation: glowBreathe 6s ease-in-out infinite alternate;
+}
+@keyframes glowBreathe {
+  from { opacity: 0.22; transform: scale(0.97); }
+  to   { opacity: 0.45; transform: scale(1.03); }
+}
+#date-day-tracker:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow:
+    var(--rim-light),
+    0 20px 40px -15px rgba(120, 12, 12, 0.55),
+    0 40px 80px -50px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Sidebar capability rows: tactile lift ---- */
+aside .flex.items-start {
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.4s var(--ease-lusion), box-shadow 0.4s var(--ease-lusion), background-color 0.25s ease;
+}
+aside .flex.items-start:hover {
+  transform: translate3d(3px, -1px, 0);
+  box-shadow: 0 10px 22px -14px rgba(15, 23, 42, 0.45), var(--rim-light);
+}
+aside .flex.items-start:active {
+  transform: translate3d(3px, 1px, 0) scale(0.99);
+  box-shadow: var(--elev-press);
+}
+
+/* ---- Quick reply pills: magnetic tilt + liquid shine sweep ---- */
+.quick-reply-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+  box-shadow: var(--elev-rest);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.45s var(--ease-lusion);
+}
+.quick-reply-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    var(--shine) 48%,
+    transparent 66%
+  );
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 0.9s var(--ease-lusion);
+}
+.quick-reply-button:hover::before {
+  transform: translate3d(120%, 0, 0);
+}
+.quick-reply-button:hover {
+  box-shadow: var(--elev-hover);
+}
+.quick-reply-button.is-pressed {
+  box-shadow: var(--elev-press) !important;
+}
+
+/* Radial highlight burst + particle dispersion on click */
+.tap-burst {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
+  animation: tapBurst 0.6s var(--ease-lusion) forwards;
+}
+@keyframes tapBurst {
+  from { transform: scale(0.4); opacity: 0.85; }
+  to   { transform: scale(9); opacity: 0; }
+}
+.tap-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: var(--primary-light);
+  animation: tapParticle 0.55s var(--ease-lusion) forwards;
+}
+@keyframes tapParticle {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.9; }
+  to   { transform: translate3d(var(--px), var(--py), 0) scale(0.2); opacity: 0; }
+}
+
+/* ---- Push-button physics for action buttons ---- */
+#send-button,
+#mic-button,
+#theme-toggle-button,
+#history-toggle-button,
+.tts-button {
+  will-change: transform, box-shadow;
+  transition:
+    transform 0.42s var(--ease-spring),
+    box-shadow 0.42s var(--ease-lusion),
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+#send-button {
+  box-shadow:
+    0 10px 22px -10px rgba(120, 12, 12, 0.65),
+    var(--rim-light);
+}
+#send-button:hover:not(:disabled) {
+  transform: translate3d(0, -2px, 0);
+  box-shadow:
+    0 20px 40px -15px rgba(120, 12, 12, 0.55),
+    var(--rim-light);
+}
+#send-button:active:not(:disabled),
+.tts-button:active:not(:disabled),
+#mic-button:active,
+#theme-toggle-button:active,
+#history-toggle-button:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: var(--elev-press);
+  transition-duration: 0.06s;
+}
+.tts-button {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+.tts-button:hover:not(:disabled) {
+  transform: translate3d(0, -1px, 0);
+}
+#theme-toggle-button {
+  position: relative;
+  overflow: visible;
+}
+
+/* ---- Footer + input: embedded glass ---- */
+#app-footer {
+  position: relative;
+  box-shadow: var(--elev-rest);
+}
+#app-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  pointer-events: none;
+}
+.app-input {
+  box-shadow: var(--elev-press);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.45s var(--ease-lusion),
+    transform 0.45s var(--ease-lusion);
+}
+.app-input:focus {
+  transform: translate3d(0, -1px, 0);
+  box-shadow:
+    var(--elev-press),
+    0 0 0 4px rgba(197, 34, 31, 0.14),
+    0 18px 36px -20px rgba(15, 23, 42, 0.35);
+}
+
+/* ---- Quick replies tray: soft embedded shelf ---- */
+#quick-replies {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.35), inset 0 -12px 24px -20px rgba(15, 23, 42, 0.35);
+}
+/* The tray is driven by Tailwind's `dark:` variant, which isn't wired to
+   .dark-mode — keep it on the existing dark tokens so both themes match. */
+.dark-mode #quick-replies {
+  background-color: var(--footer-bg) !important;
+  border-color: var(--input-border) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), inset 0 -12px 24px -20px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Fluid stagger reveal for messages / cards ---- */
+.fluid-reveal {
+  opacity: 0;
+  transform: translate3d(0, 15px, 0);
+}
+.fluid-reveal.is-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 0.7s var(--ease-lusion),
+    transform 0.7s var(--ease-lusion);
+}
+.bot-message,
+.user-message {
+  box-shadow: var(--elev-rest);
+  transition: box-shadow 0.5s var(--ease-lusion), transform 0.5s var(--ease-lusion);
+}
+.bot-message:hover,
+.user-message:hover {
+  transform: translate3d(0, -2px, 0);
+  box-shadow: var(--elev-hover);
+}
+
+/* ---- Theme ripple transition overlay ---- */
+#theme-ripple-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+  overflow: hidden;
+}
+.theme-ripple {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform, opacity;
+  filter: blur(0.5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ambient-canvas,
+  #app-container::before,
+  header.bg-\[var\(--primary-color\)\]::after,
+  #date-day-tracker::before { animation: none !important; }
+  .fluid-reveal { opacity: 1; transform: none; }
+}
 </style>
 </head>
 
 <body class="antialiased">
 <!-- 1. Fullscreen Canvas for Decompilation Intro -->
 <canvas id="intro-canvas"></canvas>
+
+<!-- 1b. Ambient fluid vector-node canvas (runs under the app) -->
+<canvas id="ambient-canvas" aria-hidden="true"></canvas>
+
+<!-- 1c. Liquid theme ripple transition layer -->
+<div id="theme-ripple-layer" aria-hidden="true"></div>
 
 <!-- 2. Main Content Wrapper, hidden until intro finishes -->
 <div id="main-content" class="hidden h-full w-full">
@@ -458,7 +857,8 @@ Clear All
 
 <script>
 // --- API Configuration and State ---
-const API_KEY = "AIzaSyCKZIKYDfAcHYMqZ2Umd7NOf5q_8RIsPno";
+// NOTE: your key was redacted when the file was pasted in — paste it back here.
+const API_KEY = "AQ.Ab8RN6IAanLgiZwbhPOy_leotK4IaHYRC4sEvJvlSWWwH5NLXQ";
 const MODEL_NAME = "gemini-2.5-flash";
 const CHAT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
@@ -1131,21 +1531,107 @@ if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
 if (typeof lucide !== 'undefined') {
 lucide.createIcons();
 }
+// Keep the ambient canvas palette in sync with the restored theme.
+if (typeof window.paintAmbientPalette === 'function') window.paintAmbientPalette();
+}
+
+// --- LUSION: liquid ripple theme transition -----------------------------
+// Records the last pointer position over the toggle so the ripple can
+// originate exactly from the click point.
+let lastThemeClickPoint = null;
+let themeRippleBusy = false;
+
+const THEME_PAGE_BG = { light: '#f3f4f6', dark: '#121212' };
+
+function applyThemeState(isDark) {
+const body = document.body;
+body.classList.toggle('dark-mode', isDark);
+localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+const themeIcon = themeToggleButton ? themeToggleButton.querySelector('i') : null;
+if (themeIcon) themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 }
 
 function toggleTheme() {
 const body = document.body;
-const isDark = body.classList.toggle('dark-mode');
+const willBeDark = !body.classList.contains('dark-mode');
 
-const newTheme = isDark ? 'dark' : 'light';
-localStorage.setItem('theme', newTheme);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const layer = document.getElementById('theme-ripple-layer');
 
-const themeIcon = themeToggleButton ? themeToggleButton.querySelector('i') : null;
-if (themeIcon) themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-
-if (typeof lucide !== 'undefined') {
-lucide.createIcons();
+if (reduceMotion || !layer || themeRippleBusy || typeof Element.prototype.animate !== 'function') {
+applyThemeState(willBeDark);
+return;
 }
+
+themeRippleBusy = true;
+
+// Origin = click point, falling back to the toggle button centre.
+let originX = window.innerWidth / 2;
+let originY = window.innerHeight - 48;
+if (lastThemeClickPoint) {
+originX = lastThemeClickPoint.x;
+originY = lastThemeClickPoint.y;
+} else if (themeToggleButton) {
+const r = themeToggleButton.getBoundingClientRect();
+originX = r.left + r.width / 2;
+originY = r.top + r.height / 2;
+}
+
+// Radius needed to cover the furthest viewport corner.
+const radius = Math.hypot(
+Math.max(originX, window.innerWidth - originX),
+Math.max(originY, window.innerHeight - originY)
+) * 1.05;
+
+const makeCircle = (bg, extraStyle) => {
+const el = document.createElement('div');
+el.className = 'theme-ripple';
+el.style.left = (originX - radius) + 'px';
+el.style.top = (originY - radius) + 'px';
+el.style.width = el.style.height = (radius * 2) + 'px';
+el.style.background = bg;
+if (extraStyle) el.style.cssText += extraStyle;
+layer.appendChild(el);
+return el;
+};
+
+// Soft leading wave (gives the liquid / shader-ish edge) + solid fill.
+const wave = makeCircle(
+`radial-gradient(circle, ${willBeDark ? 'rgba(18,18,18,0.9)' : 'rgba(255,255,255,0.9)'} 55%, ${willBeDark ? 'rgba(229,57,53,0.35)' : 'rgba(197,34,31,0.22)'} 78%, transparent 100%)`,
+'filter:blur(18px);'
+);
+const fill = makeCircle(THEME_PAGE_BG[willBeDark ? 'dark' : 'light']);
+
+const spring = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const grow = [
+{ transform: 'scale(0)', opacity: 1 },
+{ transform: 'scale(1)', opacity: 1 }
+];
+
+wave.animate(grow, { duration: 780, easing: spring, fill: 'forwards' });
+const fillAnim = fill.animate(grow, { duration: 700, easing: spring, delay: 60, fill: 'forwards' });
+
+fillAnim.finished.then(() => {
+// Swap the theme behind the fully-expanded ripple, then dissolve it.
+applyThemeState(willBeDark);
+if (typeof window.paintAmbientPalette === 'function') window.paintAmbientPalette();
+return Promise.all([
+fill.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, easing: 'linear', fill: 'forwards' }).finished,
+wave.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'linear', fill: 'forwards' }).finished
+]);
+}).then(() => {
+wave.remove();
+fill.remove();
+themeRippleBusy = false;
+lastThemeClickPoint = null;
+}).catch(() => {
+wave.remove();
+fill.remove();
+applyThemeState(willBeDark);
+themeRippleBusy = false;
+});
 }
 
 // Robust fetch with exponential backoff
@@ -1304,7 +1790,7 @@ const messageWrapper = document.createElement('div');
 messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
 const messageBubble = document.createElement('div');
-messageBubble.className = `${sender === 'user' ? 'user-message' : 'bot-message'} p-4 max-w-sm md:max-w-md shadow-lg transition duration-300 ease-out transform translate-y-4 opacity-0`;
+messageBubble.className = `${sender === 'user' ? 'user-message' : 'bot-message'} p-4 max-w-sm md:max-w-md fluid-reveal`;
 
 if (sender === 'bot' && !isSimulation) {
 messageBubble.innerHTML = typeof DOMPurify !== 'undefined' && typeof marked !== 'undefined' ? DOMPurify.sanitize(marked.parse(content)) : content;
@@ -1382,9 +1868,20 @@ if (chatBox) {
 chatBox.appendChild(messageWrapper);
 messageWrapper.appendChild(messageBubble);
 
+// Lusion-style fluid reveal: staggered slide + fade on the bubble and
+// its internal cards (sources / audio / translate rows).
+const innerCards = messageBubble.querySelectorAll(':scope > div');
+innerCards.forEach((card, i) => {
+card.classList.add('fluid-reveal');
+card.style.transitionDelay = (90 + i * 70) + 'ms';
+});
+
+requestAnimationFrame(() => {
+messageBubble.classList.add('is-in');
+innerCards.forEach(card => card.classList.add('is-in'));
+});
+
 setTimeout(() => {
-messageBubble.classList.remove('translate-y-4', 'opacity-0');
-messageBubble.classList.add('translate-y-0', 'opacity-100');
 if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 
 if (sender === 'user') {
@@ -1846,6 +2343,255 @@ if (canvas && current_phase !== 'finished') {
 setupIntroAnimation();
 }
 });
+
+/* =======================================================================
+   LUSION MOTION ENGINE
+   Ambient vector-node canvas + magnetic/tactile micro-interactions.
+   Transform/opacity only — no layout thrash, 60 FPS friendly.
+   ======================================================================= */
+(function LusionMotion() {
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- 1. Ambient floating vector-node canvas -------------- */
+const aCanvas = document.getElementById('ambient-canvas');
+const aCtx = aCanvas ? aCanvas.getContext('2d') : null;
+let nodes = [];
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+let palette = { dot: 'rgba(30,41,59,0.16)', link: 'rgba(197,34,31,0.10)', glow: 'rgba(197,34,31,0.05)' };
+const pointer = { x: -9999, y: -9999 };
+
+window.paintAmbientPalette = function paintAmbientPalette() {
+const dark = document.body.classList.contains('dark-mode');
+palette = dark
+? { dot: 'rgba(148,163,184,0.30)', link: 'rgba(148,163,184,0.13)', glow: 'rgba(229,57,53,0.10)' }
+: { dot: 'rgba(30,41,59,0.16)', link: 'rgba(30,41,59,0.07)',   glow: 'rgba(197,34,31,0.07)' };
+};
+window.paintAmbientPalette();
+
+function sizeAmbient() {
+if (!aCanvas) return;
+dpr = Math.min(window.devicePixelRatio || 1, 2);
+aCanvas.width = Math.floor(window.innerWidth * dpr);
+aCanvas.height = Math.floor(window.innerHeight * dpr);
+aCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+const target = Math.min(60, Math.round((window.innerWidth * window.innerHeight) / 26000));
+nodes = new Array(target).fill(0).map(() => ({
+x: Math.random() * window.innerWidth,
+y: Math.random() * window.innerHeight,
+vx: (Math.random() - 0.5) * 0.18,
+vy: (Math.random() - 0.5) * 0.18,
+r: 0.9 + Math.random() * 1.7
+}));
+}
+
+function drawAmbient() {
+if (!aCtx) return;
+const w = window.innerWidth, h = window.innerHeight;
+aCtx.clearRect(0, 0, w, h);
+
+for (let i = 0; i < nodes.length; i++) {
+const n = nodes[i];
+n.x += n.vx;
+n.y += n.vy;
+if (n.x < -20) n.x = w + 20; else if (n.x > w + 20) n.x = -20;
+if (n.y < -20) n.y = h + 20; else if (n.y > h + 20) n.y = -20;
+
+// Soft parallax drift away from the cursor for a fluid feel.
+const dx = n.x - pointer.x, dy = n.y - pointer.y;
+const d2 = dx * dx + dy * dy;
+if (d2 < 26000) {
+const f = (1 - d2 / 26000) * 0.35;
+n.x += (dx / (Math.sqrt(d2) || 1)) * f;
+n.y += (dy / (Math.sqrt(d2) || 1)) * f;
+}
+
+aCtx.beginPath();
+aCtx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+aCtx.fillStyle = palette.dot;
+aCtx.fill();
+
+for (let j = i + 1; j < nodes.length; j++) {
+const m = nodes[j];
+const lx = n.x - m.x, ly = n.y - m.y;
+const l2 = lx * lx + ly * ly;
+if (l2 < 20000) {
+aCtx.beginPath();
+aCtx.moveTo(n.x, n.y);
+aCtx.lineTo(m.x, m.y);
+aCtx.globalAlpha = 1 - l2 / 20000;
+aCtx.strokeStyle = palette.link;
+aCtx.lineWidth = 0.6;
+aCtx.stroke();
+aCtx.globalAlpha = 1;
+}
+}
+}
+
+// Faint ambient light bloom following the cursor.
+if (pointer.x > -9000) {
+const g = aCtx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 220);
+g.addColorStop(0, palette.glow);
+g.addColorStop(1, 'rgba(0,0,0,0)');
+aCtx.fillStyle = g;
+aCtx.fillRect(pointer.x - 220, pointer.y - 220, 440, 440);
+}
+
+rafAmbient = requestAnimationFrame(drawAmbient);
+}
+
+let rafAmbient = null;
+if (aCanvas && !reduceMotion) {
+sizeAmbient();
+window.addEventListener('resize', sizeAmbient);
+window.addEventListener('pointermove', (e) => { pointer.x = e.clientX; pointer.y = e.clientY; }, { passive: true });
+window.addEventListener('pointerleave', () => { pointer.x = pointer.y = -9999; });
+document.addEventListener('visibilitychange', () => {
+if (document.hidden) { cancelAnimationFrame(rafAmbient); }
+else { cancelAnimationFrame(rafAmbient); rafAmbient = requestAnimationFrame(drawAmbient); }
+});
+rafAmbient = requestAnimationFrame(drawAmbient);
+} else if (aCanvas) {
+aCanvas.style.display = 'none';
+}
+
+/* ---------------- 2. Spring helpers ---------------------------------- */
+// Lightweight critically-damped spring (stiffness 400 / damping 17 feel)
+function makeSpring(el, onFrame) {
+const s = { x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0, raf: null };
+const stiffness = 0.24, damping = 0.72;
+function tick() {
+s.vx = (s.vx + (s.tx - s.x) * stiffness) * damping;
+s.vy = (s.vy + (s.ty - s.y) * stiffness) * damping;
+s.x += s.vx;
+s.y += s.vy;
+onFrame(s.x, s.y);
+if (Math.abs(s.vx) > 0.001 || Math.abs(s.vy) > 0.001 ||
+Math.abs(s.tx - s.x) > 0.001 || Math.abs(s.ty - s.y) > 0.001) {
+s.raf = requestAnimationFrame(tick);
+} else {
+onFrame(s.tx, s.ty);
+s.raf = null;
+}
+}
+s.set = (tx, ty) => {
+s.tx = tx; s.ty = ty;
+if (!s.raf) s.raf = requestAnimationFrame(tick);
+};
+return s;
+}
+
+/* ---------------- 3. Magnetic, cursor-aware tilt on pills ------------- */
+function attachMagnetic(el, opts) {
+if (reduceMotion) return;
+const cfg = Object.assign({ tilt: 9, pull: 5, lift: -3 }, opts || {});
+const spring = makeSpring(el, (x, y) => {
+el.style.transform =
+`perspective(600px) translate3d(${x * cfg.pull}px, ${(y * cfg.pull) + (el.dataset.hovered === '1' ? cfg.lift : 0)}px, 0)` +
+` rotateX(${-y * cfg.tilt}deg) rotateY(${x * cfg.tilt}deg)` +
+` scale(${el.dataset.pressed === '1' ? 0.95 : (el.dataset.hovered === '1' ? 1.03 : 1)})`;
+});
+
+el.addEventListener('pointerenter', () => { el.dataset.hovered = '1'; });
+el.addEventListener('pointermove', (e) => {
+const r = el.getBoundingClientRect();
+spring.set(
+((e.clientX - r.left) / r.width - 0.5) * 2,
+((e.clientY - r.top) / r.height - 0.5) * 2
+);
+});
+el.addEventListener('pointerleave', () => {
+el.dataset.hovered = '0';
+el.dataset.pressed = '0';
+el.classList.remove('is-pressed');
+spring.set(0, 0);
+});
+el.addEventListener('pointerdown', () => {
+el.dataset.pressed = '1';
+el.classList.add('is-pressed');
+spring.set(spring.tx, spring.ty);
+});
+el.addEventListener('pointerup', () => {
+el.dataset.pressed = '0';
+el.classList.remove('is-pressed');
+spring.set(spring.tx, spring.ty);
+});
+}
+
+/* ---------------- 4. Radial burst + particle dispersion -------------- */
+function tapBurst(host, clientX, clientY) {
+if (reduceMotion) return;
+const r = host.getBoundingClientRect();
+const x = clientX - r.left, y = clientY - r.top;
+
+const burst = document.createElement('span');
+burst.className = 'tap-burst';
+burst.style.left = x + 'px';
+burst.style.top = y + 'px';
+host.appendChild(burst);
+burst.addEventListener('animationend', () => burst.remove());
+
+for (let i = 0; i < 6; i++) {
+const p = document.createElement('span');
+p.className = 'tap-particle';
+const angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.6;
+const dist = 18 + Math.random() * 22;
+p.style.left = x + 'px';
+p.style.top = y + 'px';
+p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
+p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
+p.style.animationDelay = (i * 12) + 'ms';
+host.appendChild(p);
+p.addEventListener('animationend', () => p.remove());
+}
+}
+
+/* ---------------- 5. Wire everything up ------------------------------ */
+function wire() {
+document.querySelectorAll('.quick-reply-button').forEach((btn) => {
+if (btn.dataset.lusion === '1') return;
+btn.dataset.lusion = '1';
+attachMagnetic(btn, { tilt: 10, pull: 5, lift: -3 });
+btn.addEventListener('pointerdown', (e) => tapBurst(btn, e.clientX, e.clientY));
+});
+
+// Remember where the theme toggle was clicked so the ripple starts there.
+const themeBtn = document.getElementById('theme-toggle-button');
+if (themeBtn && themeBtn.dataset.lusion !== '1') {
+themeBtn.dataset.lusion = '1';
+themeBtn.addEventListener('pointerdown', (e) => {
+lastThemeClickPoint = { x: e.clientX, y: e.clientY };
+});
+}
+
+// Reveal the pre-rendered welcome card with the same fluid curve.
+document.querySelectorAll('#chat-box .bot-message:not([data-revealed])').forEach((el, i) => {
+el.dataset.revealed = '1';
+el.classList.add('fluid-reveal');
+el.style.transitionDelay = (i * 90) + 'ms';
+requestAnimationFrame(() => el.classList.add('is-in'));
+});
+}
+
+// Elements are injected after the intro animation finishes, so keep watching.
+// Debounced to one pass per frame so bursts of DOM churn never cost frames.
+let wireScheduled = false;
+function scheduleWire() {
+if (wireScheduled) return;
+wireScheduled = true;
+requestAnimationFrame(() => { wireScheduled = false; wire(); });
+}
+const mo = new MutationObserver(scheduleWire);
+function boot() {
+wire();
+mo.observe(document.body, { childList: true, subtree: true });
+}
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', boot);
+} else {
+boot();
+}
+})();
 </script>
 </body>
 </html>
