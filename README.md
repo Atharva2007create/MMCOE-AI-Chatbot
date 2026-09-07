@@ -1,116 +1,69 @@
-# MMCOE-AI-Chatbot 
-🏆MMCOE Vector AI is not just another chatbot—it's a cutting-edge, multi-modal AI assistant specifically engineered for educational institutions. Built with enterprise-grade architecture and featuring real-time RAG (Retrieval-Augmented Generation), comprehensive multi-language support, and professional UI/UX design, this platform sets the new standard for academic AI assistants.
+# MMCOE AI Chatbot
 
-🎯 Core Value Proposition
-Domain-Specific Intelligence: Exclusively trained on MMCOE admission processes, courses, and educational content
-Multi-modal Interaction: Seamless integration of text, voice, and visual communication
-Enterprise Security: Built-in content moderation and professional boundary enforcement
-Accessibility-First: Full support for English, Hindi, and Marathi with TTS/STT capabilities
+MMCOE Vector AI is a browser-based educational chatbot for MMCOE admissions, fees, courses, and campus information. It keeps the MMCOE identity and existing user-facing features while routing Gemini requests through secure server-side API functions.
 
-⚡ Lightning-Feature Breakdown
-🎨 Premium UI/UX Experience
-Cinematic Intro Animation: Matrix-style loading sequence that builds brand anticipation
-Dark/Light Mode: Seamless theme switching with professional color schemes
-Responsive Design: Optimized for desktop, tablet, and mobile devices
-Advanced Typography: Inter font family with perfect readability ratios
+## What is included
 
-🧠 AI-Powered Intelligence Core
-Latest Gemini 2.5 Flash Model: Industry-leading AI performance
-Real-time Google Search RAG: Always-current information sourcing
-Structured Data Presentation: Automatic table generation for courses/fees
-Professional Response Formatting: Markdown-enhanced academic content
+- Responsive vanilla HTML/CSS/JavaScript interface with light/dark themes.
+- Gemini chat with Google Search grounding, server-side authentication, moderation, translation, and text-to-speech routes.
+- English, Hindi, and Marathi translation/audio controls.
+- Browser-local chat history; no user accounts or application database.
+- Safe Markdown rendering with sanitization, bounded conversation context, request cancellation, retries, and accessible controls.
+- Vercel-compatible `/api` serverless functions and security headers.
 
-🔊 Multi-Language Audio Engine
-Text-to-Speech (TTS): Three language support with professional voice synthesis
-Speech-to-Text (STT): Voice query processing with error tolerance
-Real-time Translation: Instant Hindi/Marathi translation with formatting preservation
-Audio Quality Optimization: PCM-to-WAV conversion at professional sample rates
+## Run locally
 
-🛡️ Enterprise Security Suite
-Real-time Content Moderation: Multi-language inappropriate content detection
-Academic Boundary Enforcement: Strict domain-specific query filtering
-Professional Tone Maintenance: Automated polite language enforcement
-Secure API Communications: Encrypted data transmission
+Requirements: Node.js 20 or newer.
 
-🏗️ Architecture Blueprint
-📁 MMCOE Vector AI Structure
-├── 🎨 CSS Custom Properties System
-│   ├── Light/Dark Theme Variables
-│   ├── Professional Color Palette
-│   └── Responsive Design Framework
-├── 🎯 JavaScript Core Engine
-│   ├── AI Integration Layer
-│   ├── Audio Processing Module
-│   ├── UI Animation Controller
-│   └── Data Persistence Manager
-└── 🎪 Advanced UI Components
-    ├── Chat History System
-    ├── Real-time Translation Panel
-    ├── Voice Control Interface
-    └── Professional Loading States
+```bash
+npm install
+copy .env.example .env.local
+npm run dev
+```
 
-    API Integration Matrix
-Service	Purpose	Integration Level
-Google Gemini AI   |  Core Chat Intelligence  |  	Enterprise
-Google TTS API	   |   Multi-language Audio   |	  Professional
-Web Speech API	   |    Voice Recognition	    |  Native Browser
-Local Storage      |	 Session Persistence	  |   Client-Side
+Set `GEMINI_API_KEY` in `.env.local` for real Gemini responses. Never commit that value or put it in frontend code. Without a key, the UI and mocked/static checks still run, but AI routes return a configuration error.
 
-🚀 Elite Technical Features
-1. Advanced Animation System
-Smooth State Transitions: Professional loading sequences
-Performance Optimized: 60fps animation rendering
-Brand Building: Custom MMCOE Vector branding animation
+The local development server is available at `http://localhost:3000`.
 
-2. Professional Error Handling
-Network Resilience: 5-stage retry mechanism
-Graceful Degradation: Professional error messaging
-User Experience Protection: Never-breaking user flow
+## Verify changes
 
-3. Enterprise Data Management
-Session Persistence: 50-conversation history limit
-Performance Optimized: Efficient data storage
-Privacy Compliant: Client-side data management
+```bash
+npm run check
+npm audit --audit-level=high
+```
 
+The check command builds local assets and runs API validation, safe-rendering, and static security tests.
 
-# Professional deployment checklist
-1. API Key Configuration → Update Google Gemini credentials
-2. Domain Verification → Ensure HTTPS for voice features  
-3. Performance Testing → Validate cross-browser functionality
-4. User Acceptance Testing → Professional QA process
+## Deploy to Vercel
 
+Import this repository into Vercel, keep the default Node.js runtime, and configure `GEMINI_API_KEY` as a Vercel Environment Variable for the environments you deploy. Optional server-side model overrides are `GEMINI_CHAT_MODEL` and `GEMINI_TTS_MODEL`. Redeploy after changing environment variables.
 
-🏆 Competitive Advantages
-🎓 Educational Domain Expertise
-Institutional Specificity: MMCOE-focused intelligence
-Academic Accuracy: Verified educational content
-Professional Tone: Institution-appropriate communication
+## Project layout
 
-🌍 Multi-language Leadership
-Regional Language Support: Hindi and Marathi excellence
-Audio Quality: Professional TTS implementation
-Translation Accuracy: Context-aware language processing
+```text
+index.html              Frontend shell and MMCOE-branded styles
+src/app.js              Browser behavior and same-origin API client
+api/chat.js             Gemini chat and Search grounding
+api/moderate.js         Safety moderation
+api/translate.js        Hindi/Marathi translation
+api/tts.js              Multilingual speech synthesis
+api/_lib/               Shared HTTP, Gemini, and prompt helpers
+scripts/                Asset build and local development tooling
+tests/                  Mocked API, rendering, and static checks
+docs/                   System overview, baseline, repair plan, and status
+```
 
-🛡️ Security & Compliance
-Content Safety: Real-time moderation system
-Privacy Protection: Client-side data management
-Professional Boundaries: Strict domain enforcement
+## Deployment checklist
 
-🤖 INSTRUCTIONS TO USE MMCOE VECTOR CHATBOT :
+1. Configure `GEMINI_API_KEY` only in Vercel Environment Variables.
+2. Revoke any API key that was previously exposed in an older commit.
+3. Run `npm run check` before deployment.
+4. Perform real Gemini, mobile, browser-audio, and microphone acceptance checks after deployment.
 
-1)Replace "Your API Key here" by your own API Key
-2)Environment Setup
-Prerequisites:
-Modern browser (Chrome 90+, Firefox 88+, Safari 14+)
-HTTPS environment for voice features
-Stable internet connection
+### Prerequisites
 
+- Modern browser with JavaScript enabled.
+- HTTPS for deployed speech-recognition use.
+- Stable internet connection for Gemini-backed features.
 
-
-                                                  🔥 Built with Passion by MMCOE Students 🔥
-                                                                        
-                                                 Transforming education through elite AI technology
-                                                                        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                                                                        
-
+🔥 Built with Passion by MMCOE Students 🔥
