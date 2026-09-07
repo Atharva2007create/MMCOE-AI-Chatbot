@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin } = require('../api/_lib/http');
+const moderate = require('../api/moderate');
 const translate = require('../api/translate');
 const tts = require('../api/tts');
 
@@ -64,4 +65,35 @@ test('rate limiting returns a bounded rejection and errors redact internals', ()
   const errorResponse = response();
   publicError(errorResponse, Object.assign(new Error('internal secret'), { status: 500 }));
   assert.equal(errorResponse.body.includes('internal secret'), false);
+});
+
+test('moderation uses Gemini 3.5 with a sufficient minimal-thinking budget', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_CHAT_MODEL;
+  let outbound;
+  process.env.GEMINI_API_KEY = 'test-only-key';
+  delete process.env.GEMINI_CHAT_MODEL;
+  globalThis.fetch = async (url, options) => {
+    outbound = { url, options };
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: 'CLEAN' }] } }] }) };
+  };
+  try {
+    const moderationResponse = response();
+    const moderationRequest = { ...request({ text: 'What is MMCOE?' }), socket: { remoteAddress: 'moderation-model-test' } };
+    await moderate(moderationRequest, moderationResponse);
+    const payload = JSON.parse(outbound.options.body);
+    assert.equal(moderationResponse.statusCode, 200);
+    assert.deepEqual(JSON.parse(moderationResponse.body), { allowed: true });
+    assert.match(outbound.url, /gemini-3\.5-flash:generateContent$/);
+    assert.equal(payload.generationConfig.maxOutputTokens, 256);
+    assert.equal(payload.generationConfig.thinkingConfig.thinkingLevel, 'MINIMAL');
+    assert.equal(Object.hasOwn(payload.generationConfig, 'temperature'), false);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_CHAT_MODEL;
+    else process.env.GEMINI_CHAT_MODEL = previousModel;
+  }
 });

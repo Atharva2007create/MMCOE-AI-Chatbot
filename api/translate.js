@@ -15,11 +15,14 @@ module.exports = async function handler(req, res) {
     if (!text || text.length > 12_000 || !language) {
       throw Object.assign(new Error('Provide valid text and a supported target language.'), { status: 400, publicCode: 'INVALID_TRANSLATION_REQUEST' });
     }
-    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
     const result = await generateContent(model, {
       contents: [{ role: 'user', parts: [{ text: `Target language: ${language}\n\n${text}` }] }],
       systemInstruction: { parts: [{ text: TRANSLATION_PROMPT }] },
-      generationConfig: { maxOutputTokens: 2_000, temperature: 0.1 }
+      generationConfig: {
+        maxOutputTokens: 8_192,
+        thinkingConfig: { thinkingLevel: 'MINIMAL' }
+      }
     });
     sendJson(res, 200, { text: responseText(result), language: body.language });
   } catch (error) {

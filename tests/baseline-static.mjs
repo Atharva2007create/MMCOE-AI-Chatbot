@@ -4,6 +4,10 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const client = await readFile(new URL('../src/app.js', import.meta.url), 'utf8');
 const server = await readFile(new URL('../api/_lib/gemini.js', import.meta.url), 'utf8');
+const chat = await readFile(new URL('../api/chat.js', import.meta.url), 'utf8');
+const moderation = await readFile(new URL('../api/moderate.js', import.meta.url), 'utf8');
+const translation = await readFile(new URL('../api/translate.js', import.meta.url), 'utf8');
+const tts = await readFile(new URL('../api/tts.js', import.meta.url), 'utf8');
 const vercel = await readFile(new URL('../vercel.json', import.meta.url), 'utf8');
 
 const checks = [
@@ -23,6 +27,9 @@ const checks = [
   ['CSP disallows third-party scripts', /script-src 'self'/.test(vercel) && !/script-src[^;]*unsafe-inline/.test(vercel)],
   ['Vercel serves the repository root', /"outputDirectory"\s*:\s*"\."/.test(vercel)],
   ['microphone preflight stream is absent', !/getUserMedia/.test(client) && !/auto-restart|automatic restart/i.test(client)],
+  ['chat, moderation, and translation default to Gemini 3.5 Flash', [chat, moderation, translation].every(source => /gemini-3\.5-flash/.test(source))],
+  ['Gemini 3.5 requests use thinking levels without sampling overrides', [chat, moderation, translation].every(source => /thinkingLevel/.test(source) && !/temperature\s*:/.test(source))],
+  ['TTS uses a dedicated audio-capable model', /gemini-2\.5-flash-preview-tts/.test(tts) && !/gemini-3\.5-flash/.test(tts)],
 ];
 
 for (const [name, condition] of checks) {

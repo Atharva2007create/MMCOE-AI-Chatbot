@@ -12,11 +12,14 @@ module.exports = async function handler(req, res) {
     if (!text || text.length > 4_000) {
       throw Object.assign(new Error('Message must contain 1 to 4,000 characters.'), { status: 400, publicCode: 'INVALID_TEXT' });
     }
-    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
     const result = await generateContent(model, {
       contents: [{ role: 'user', parts: [{ text }] }],
       systemInstruction: { parts: [{ text: MODERATION_PROMPT }] },
-      generationConfig: { maxOutputTokens: 8, temperature: 0 }
+      generationConfig: {
+        maxOutputTokens: 256,
+        thinkingConfig: { thinkingLevel: 'MINIMAL' }
+      }
     }, { timeoutMs: 15_000, retries: 1 });
     const verdict = responseText(result).toUpperCase();
     if (verdict !== 'CLEAN') {
@@ -26,6 +29,10 @@ module.exports = async function handler(req, res) {
     sendJson(res, 200, { allowed: true });
   } catch (error) {
     if (error?.status >= 500) {
+      console.error('Moderation request failed.', {
+        code: error.publicCode || 'UNKNOWN',
+        status: error.status
+      });
       sendJson(res, 503, { error: { code: 'MODERATION_UNAVAILABLE', message: 'Message safety could not be verified. Please try again.' } });
       return;
     }

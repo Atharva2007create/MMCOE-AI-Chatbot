@@ -30,12 +30,15 @@ module.exports = async function handler(req, res) {
   try {
     const body = parseBody(req);
     const contents = validateMessages(body.messages);
-    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
     const result = await generateContent(model, {
       contents,
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
       tools: [{ google_search: {} }],
-      generationConfig: { maxOutputTokens: 1_500, temperature: 0.2 },
+      generationConfig: {
+        maxOutputTokens: 2_048,
+        thinkingConfig: { thinkingLevel: 'LOW' }
+      },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },

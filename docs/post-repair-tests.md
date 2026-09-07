@@ -1,7 +1,7 @@
 # Post-repair test report
 
 Run date: 2026-09-07  
-Branch: `master` (local commit `b88fd15`; push pending GitHub authentication)
+Branch: `master`
 
 ## Automated checks
 
@@ -23,12 +23,20 @@ Results:
 
 - Build generated local Tailwind, marked, DOMPurify, and Lucide assets.
 - Six API/contract tests passed.
+- Four security/regression tests passed.
 - One DOM sanitization test passed.
-- Sixteen implementation/security assertions passed.
+- Nineteen implementation/security assertions passed.
 - `npm audit` reported 0 vulnerabilities.
 - `git diff --check` reported no whitespace errors (Git may normalize `index.html` line endings on the next checkout).
 
 The build prints a non-failing Browserslist maintenance notice about `caniuse-lite`; this is a dependency-data freshness warning, not an application error.
+
+## Gemini 3.5 migration and production diagnosis
+
+- Official Google documentation confirms `gemini-3.5-flash` is stable and supports GenerateContent plus Google Search grounding.
+- Chat, moderation, and translation now default to `gemini-3.5-flash`; Gemini 3 sampling overrides were removed and explicit thinking levels were added.
+- Moderation now has a sufficient output allowance with minimal thinking, fixing the deployed `MODERATION_UNAVAILABLE` failure caused by the previous eight-token limit.
+- TTS remains on `gemini-2.5-flash-preview-tts`, which is a supported audio-generation model. Gemini 3.5 Flash itself does not support audio output.
 
 ## API boundary checks without credentials
 
