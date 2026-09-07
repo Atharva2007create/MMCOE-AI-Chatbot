@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin } = require('../api/_lib/http');
+const chat = require('../api/chat');
 const moderate = require('../api/moderate');
 const translate = require('../api/translate');
 const tts = require('../api/tts');
@@ -71,9 +72,11 @@ test('moderation uses Gemini 3.5 with a sufficient minimal-thinking budget', asy
   const previousFetch = globalThis.fetch;
   const previousKey = process.env.GEMINI_API_KEY;
   const previousModel = process.env.GEMINI_CHAT_MODEL;
+  const previousUtilityModel = process.env.GEMINI_UTILITY_MODEL;
   let outbound;
   process.env.GEMINI_API_KEY = 'test-only-key';
   delete process.env.GEMINI_CHAT_MODEL;
+  delete process.env.GEMINI_UTILITY_MODEL;
   globalThis.fetch = async (url, options) => {
     outbound = { url, options };
     return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: 'CLEAN' }] } }] }) };
@@ -95,5 +98,43 @@ test('moderation uses Gemini 3.5 with a sufficient minimal-thinking budget', asy
     else process.env.GEMINI_API_KEY = previousKey;
     if (previousModel === undefined) delete process.env.GEMINI_CHAT_MODEL;
     else process.env.GEMINI_CHAT_MODEL = previousModel;
+    if (previousUtilityModel === undefined) delete process.env.GEMINI_UTILITY_MODEL;
+    else process.env.GEMINI_UTILITY_MODEL = previousUtilityModel;
+  }
+});
+
+test('grounded chat uses the free-tier-compatible Gemini 2.5 request shape', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_GROUNDED_MODEL;
+  let outbound;
+  process.env.GEMINI_API_KEY = 'test-only-key';
+  delete process.env.GEMINI_GROUNDED_MODEL;
+  globalThis.fetch = async (url, options) => {
+    outbound = { url, options };
+    return {
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text: 'Grounded answer' }] } }] })
+    };
+  };
+  try {
+    const chatResponse = response();
+    const chatRequest = {
+      ...request({ messages: [{ role: 'user', text: 'What is MMCOE?' }] }),
+      socket: { remoteAddress: 'grounded-model-test' }
+    };
+    await chat(chatRequest, chatResponse);
+    const payload = JSON.parse(outbound.options.body);
+    assert.equal(chatResponse.statusCode, 200);
+    assert.match(outbound.url, /gemini-2\.5-flash:generateContent$/);
+    assert.deepEqual(payload.tools, [{ google_search: {} }]);
+    assert.equal(payload.generationConfig.thinkingConfig.thinkingBudget, 0);
+    assert.equal(Object.hasOwn(payload.generationConfig.thinkingConfig, 'thinkingLevel'), false);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_GROUNDED_MODEL;
+    else process.env.GEMINI_GROUNDED_MODEL = previousModel;
   }
 });

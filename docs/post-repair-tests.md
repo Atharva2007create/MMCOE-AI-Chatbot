@@ -22,8 +22,8 @@ node --check api/tts.js
 Results:
 
 - Build generated local Tailwind, marked, DOMPurify, and Lucide assets.
-- Six API/contract tests passed.
-- Four security/regression tests passed.
+- Seven API/contract tests passed.
+- Five security/regression tests passed.
 - One DOM sanitization test passed.
 - Nineteen implementation/security assertions passed.
 - `npm audit` reported 0 vulnerabilities.
@@ -34,7 +34,8 @@ The build prints a non-failing Browserslist maintenance notice about `caniuse-li
 ## Gemini 3.5 migration and production diagnosis
 
 - Official Google documentation confirms `gemini-3.5-flash` is stable and supports GenerateContent plus Google Search grounding.
-- Chat, moderation, and translation now default to `gemini-3.5-flash`; Gemini 3 sampling overrides were removed and explicit thinking levels were added.
+- Free-tier Search-grounded chat uses `gemini-2.5-flash`; moderation and translation use `gemini-3.5-flash`.
+- Model-aware configuration uses `thinkingBudget: 0` for Gemini 2.5 and explicit thinking levels for Gemini 3, so environment overrides cannot cross incompatible generations.
 - Moderation now has a sufficient output allowance with minimal thinking, fixing the deployed `MODERATION_UNAVAILABLE` failure caused by the previous eight-token limit.
 - TTS remains on `gemini-2.5-flash-preview-tts`, which is a supported audio-generation model. Gemini 3.5 Flash itself does not support audio output.
 

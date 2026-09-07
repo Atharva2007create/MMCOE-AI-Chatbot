@@ -2,6 +2,7 @@
 
 const { generateContent } = require('./_lib/gemini');
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin, sendJson } = require('./_lib/http');
+const { ttsModel } = require('./_lib/models');
 
 const LANGUAGES = Object.freeze({ en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' });
 const VOICES = new Set(['Aoede', 'Kore', 'Puck', 'Charon']);
@@ -16,7 +17,7 @@ module.exports = async function handler(req, res) {
     if (!text || text.length > 5_000 || !languageCode) {
       throw Object.assign(new Error('Provide valid text and a supported audio language.'), { status: 400, publicCode: 'INVALID_TTS_REQUEST' });
     }
-    const model = process.env.GEMINI_TTS_MODEL || 'gemini-2.5-flash-preview-tts';
+    const model = ttsModel();
     const result = await generateContent(model, {
       contents: [{ role: 'user', parts: [{ text }] }],
       generationConfig: {

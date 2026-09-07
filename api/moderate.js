@@ -2,6 +2,7 @@
 
 const { generateContent, responseText } = require('./_lib/gemini');
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin, sendJson } = require('./_lib/http');
+const { textGenerationConfig, utilityModel } = require('./_lib/models');
 const { MODERATION_PROMPT } = require('./_lib/prompts');
 
 module.exports = async function handler(req, res) {
@@ -12,14 +13,11 @@ module.exports = async function handler(req, res) {
     if (!text || text.length > 4_000) {
       throw Object.assign(new Error('Message must contain 1 to 4,000 characters.'), { status: 400, publicCode: 'INVALID_TEXT' });
     }
-    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
+    const model = utilityModel();
     const result = await generateContent(model, {
       contents: [{ role: 'user', parts: [{ text }] }],
       systemInstruction: { parts: [{ text: MODERATION_PROMPT }] },
-      generationConfig: {
-        maxOutputTokens: 256,
-        thinkingConfig: { thinkingLevel: 'MINIMAL' }
-      }
+      generationConfig: textGenerationConfig(model, 256, 'MINIMAL')
     }, { timeoutMs: 15_000, retries: 1 });
     const verdict = responseText(result).toUpperCase();
     if (verdict !== 'CLEAN') {

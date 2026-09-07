@@ -2,6 +2,7 @@
 
 const { generateContent, responseText } = require('./_lib/gemini');
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin, sendJson } = require('./_lib/http');
+const { textGenerationConfig, utilityModel } = require('./_lib/models');
 const { TRANSLATION_PROMPT } = require('./_lib/prompts');
 
 const LANGUAGES = Object.freeze({ hi: 'Hindi', mr: 'Marathi' });
@@ -15,14 +16,11 @@ module.exports = async function handler(req, res) {
     if (!text || text.length > 12_000 || !language) {
       throw Object.assign(new Error('Provide valid text and a supported target language.'), { status: 400, publicCode: 'INVALID_TRANSLATION_REQUEST' });
     }
-    const model = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
+    const model = utilityModel();
     const result = await generateContent(model, {
       contents: [{ role: 'user', parts: [{ text: `Target language: ${language}\n\n${text}` }] }],
       systemInstruction: { parts: [{ text: TRANSLATION_PROMPT }] },
-      generationConfig: {
-        maxOutputTokens: 8_192,
-        thinkingConfig: { thinkingLevel: 'MINIMAL' }
-      }
+      generationConfig: textGenerationConfig(model, 8_192, 'MINIMAL')
     });
     sendJson(res, 200, { text: responseText(result), language: body.language });
   } catch (error) {

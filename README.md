@@ -36,7 +36,7 @@ The check command builds local assets and runs API validation, safe-rendering, a
 
 ## Deploy to Vercel
 
-Import this repository into Vercel, keep the default Node.js runtime, and configure `GEMINI_API_KEY` as a Vercel Environment Variable for the environments you deploy. Chat, moderation, and translation default to the stable `gemini-3.5-flash` model. TTS remains on the dedicated `gemini-2.5-flash-preview-tts` model because Gemini 3.5 Flash does not generate audio. Optional server-side overrides are `GEMINI_CHAT_MODEL` and `GEMINI_TTS_MODEL`. Redeploy after changing environment variables.
+Import this repository into Vercel, keep the default Node.js runtime, and configure `GEMINI_API_KEY` as a Vercel Environment Variable for the environments you deploy. Search-grounded chat defaults to `gemini-2.5-flash`, which works with the Gemini free tier. Moderation and translation default to the stable `gemini-3.5-flash`; TTS uses the dedicated `gemini-2.5-flash-preview-tts` audio model. Optional server-side overrides are `GEMINI_GROUNDED_MODEL`, `GEMINI_UTILITY_MODEL`, and `GEMINI_TTS_MODEL`. The older `GEMINI_CHAT_MODEL` variable remains a compatibility alias for the utility model. Redeploy after changing environment variables.
 
 ## Project layout
 
