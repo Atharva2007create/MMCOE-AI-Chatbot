@@ -34,7 +34,7 @@ test('grounding parser keeps only safe HTTPS sources and support indexes', () =>
   } }] });
   assert.equal(parsed.sources.length, 1);
   assert.equal(parsed.sources[0].title, 'MMCOE');
-  assert.deepEqual(parsed.supports[0].sourceIndices, [0, 1]);
+  assert.deepEqual(parsed.supports[0].sourceIndices, [0]);
 });
 
 test('Gemini request sends the credential in a header, never in the URL', async () => {

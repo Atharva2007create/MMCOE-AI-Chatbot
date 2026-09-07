@@ -324,7 +324,11 @@ async function translateMessage(language, button, messageId, originalText) {
   button.textContent = 'Translating…';
   try {
     const text = await translatedText(language, messageId, originalText, controller.signal);
-    if (state.requests.translation !== controller) return;
+    if (state.requests.translation !== controller) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+      return;
+    }
     const card = document.createElement('div');
     card.className = 'mt-3 p-3 bg-white/10 rounded-lg translation-content';
     const title = document.createElement('p');
@@ -389,7 +393,11 @@ async function handleTts(language, button, messageId, originalText) {
     let text = originalText;
     if (language !== 'en') text = await translatedText(language, messageId, originalText, controller.signal);
     const response = await apiRequest('/api/tts', { text, language, voice: 'Aoede' }, { signal: controller.signal, timeoutMs: 50_000, retries: 0 });
-    if (state.requests.audio !== controller) return;
+    if (state.requests.audio !== controller) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+      return;
+    }
     const bytes = base64Bytes(response.data);
     const mimeType = String(response.mimeType || '');
     const rate = Number(mimeType.match(/rate=(\d+)/i)?.[1] || 24_000);
@@ -410,9 +418,9 @@ async function handleTts(language, button, messageId, originalText) {
     showStatus(`${LANGUAGE[language].label} audio playing.`);
   } catch (error) {
     if (error?.name !== 'AbortError') showStatus(publicErrorMessage(error, 'Audio could not be played.'), 'error');
+    if (state.requests.audio === controller) stopAudio();
     button.disabled = false;
     button.textContent = originalLabel;
-    if (state.requests.audio === controller) state.requests.audio = null;
   }
 }
 
@@ -612,7 +620,9 @@ function startIntro() {
     state.input.focus();
   };
   if (reduceMotion || !canvas.getContext) { reveal(); return; }
-  const context = canvas.getContext('2d');
+  let context = null;
+  try { context = canvas.getContext('2d'); } catch { context = null; }
+  if (!context) { reveal(); return; }
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   const start = performance.now();

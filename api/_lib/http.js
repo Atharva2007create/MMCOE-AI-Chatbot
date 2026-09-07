@@ -1,6 +1,13 @@
 'use strict';
 
 const buckets = new Map();
+const MAX_BUCKETS = 10_000;
+
+function pruneBuckets(now) {
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt <= now) buckets.delete(key);
+  }
+}
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -47,8 +54,12 @@ function parseBody(req) {
 
 function rateLimit(req, res, { limit = 30, windowMs = 60_000 } = {}) {
   const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  const key = forwarded || req.socket?.remoteAddress || 'unknown';
   const now = Date.now();
+  let key = forwarded || req.socket?.remoteAddress || 'unknown';
+  if (!buckets.has(key) && buckets.size >= MAX_BUCKETS) {
+    pruneBuckets(now);
+    if (buckets.size >= MAX_BUCKETS) key = '__rate_limit_overflow__';
+  }
   const current = buckets.get(key);
   if (!current || current.resetAt <= now) {
     buckets.set(key, { count: 1, resetAt: now + windowMs });

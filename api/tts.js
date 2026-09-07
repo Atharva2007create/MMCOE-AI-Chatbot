@@ -3,7 +3,7 @@
 const { generateContent } = require('./_lib/gemini');
 const { parseBody, publicError, rateLimit, requirePost, requireSameOrigin, sendJson } = require('./_lib/http');
 
-const LANGUAGES = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' };
+const LANGUAGES = Object.freeze({ en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' });
 const VOICES = new Set(['Aoede', 'Kore', 'Puck', 'Charon']);
 
 module.exports = async function handler(req, res) {
@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
   try {
     const body = parseBody(req);
     const text = typeof body.text === 'string' ? body.text.trim() : '';
-    const languageCode = LANGUAGES[body.language];
+    const languageCode = Object.prototype.hasOwnProperty.call(LANGUAGES, body.language) ? LANGUAGES[body.language] : null;
     const voiceName = VOICES.has(body.voice) ? body.voice : 'Aoede';
     if (!text || text.length > 5_000 || !languageCode) {
       throw Object.assign(new Error('Provide valid text and a supported audio language.'), { status: 400, publicCode: 'INVALID_TTS_REQUEST' });

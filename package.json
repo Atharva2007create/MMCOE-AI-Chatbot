@@ -7,7 +7,7 @@
     "build:assets": "node scripts/build-assets.mjs",
     "build": "npm run build:assets",
     "dev": "npm run build && node scripts/dev-server.mjs",
-    "test": "node tests/api.test.mjs && node tests/rendering.test.mjs && node tests/baseline-static.mjs",
+    "test": "node tests/api.test.mjs && node tests/security.test.mjs && node tests/rendering.test.mjs && node tests/baseline-static.mjs",
     "check": "npm run build && npm test"
   },
   "dependencies": {

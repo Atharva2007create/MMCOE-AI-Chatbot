@@ -1,4 +1,4 @@
-import { cp, mkdir } from 'node:fs/promises';
+import { copyFile, mkdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
@@ -14,7 +14,7 @@ const copies = [
 ];
 
 for (const [source, destination] of copies) {
-  await cp(path.join(root, source), path.join(assets, destination));
+  await copyFile(path.join(root, source), path.join(assets, destination));
 }
 
 const cli = path.join(root, 'node_modules', 'tailwindcss', 'lib', 'cli.js');

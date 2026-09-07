@@ -78,10 +78,11 @@ function grounding(result) {
       return { index, uri: parsed.href, title: String(chunk.web.title || parsed.hostname).slice(0, 200) };
     } catch { return null; }
   }).filter(Boolean);
+  const safeIndices = new Set(sources.map(source => source.index));
   const supports = Array.isArray(metadata.groundingSupports) ? metadata.groundingSupports.map(support => ({
     startIndex: Number.isInteger(support?.segment?.startIndex) ? support.segment.startIndex : null,
     endIndex: Number.isInteger(support?.segment?.endIndex) ? support.segment.endIndex : null,
-    sourceIndices: Array.isArray(support?.groundingChunkIndices) ? support.groundingChunkIndices.filter(Number.isInteger) : [],
+    sourceIndices: Array.isArray(support?.groundingChunkIndices) ? support.groundingChunkIndices.filter(Number.isInteger).filter(index => safeIndices.has(index)) : [],
   })) : [];
   return { sources, supports };
 }

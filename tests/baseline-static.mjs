@@ -21,6 +21,7 @@ const checks = [
   ['v0 development runtime is absent', !/__V0_|v0-runtime-dist/.test(html)],
   ['inline JavaScript handlers are absent', !/\son(?:click|keydown|keypress|keyup)=/.test(html)],
   ['CSP disallows third-party scripts', /script-src 'self'/.test(vercel) && !/script-src[^;]*unsafe-inline/.test(vercel)],
+  ['Vercel serves the repository root', /"outputDirectory"\s*:\s*"\."/.test(vercel)],
   ['microphone preflight stream is absent', !/getUserMedia/.test(client) && !/auto-restart|automatic restart/i.test(client)],
 ];
 
